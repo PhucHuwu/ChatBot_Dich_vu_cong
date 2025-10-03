@@ -1,0 +1,4 @@
+.env
+__pycache__/
+craw_data/
+data/*.json
