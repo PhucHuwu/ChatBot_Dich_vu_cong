@@ -80,7 +80,7 @@ def generate_answer(query, contexts, chat_history=None, temperature=0.7, max_tok
     prompt += "Nếu không đủ thông tin, hãy nói rõ bạn không thể trả lời chính xác."
     prompt += "Trả lời đầy đủ, rõ ý, dễ hiểu bằng tiếng Việt."
     prompt += "Nếu người dùng hỏi câu hỏi không liên quan đến thủ tục hành chính trong Dịch vụ công Quốc gia, hãy nói rõ bạn không thể trả lời và không đưa thông tin gì thêm."
-    prompt += "Hãy đưa các đường dẫn liên quan đến câu hỏi của người dùng nếu có thể."
+    prompt += "Hãy đưa các đường dẫn liên quan đến câu hỏi về thủ tục hành chính trong Dịch vụ công Quốc gia của người dùng nếu có thể."
 
     messages = [
         {"role": "system",
