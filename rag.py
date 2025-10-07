@@ -1,120 +1,148 @@
 import os
+import json
+import logging
+from typing import List, Dict, Optional
 from dotenv import load_dotenv
-from groq import Groq
 import faiss
 import pickle
+
 from chunking import chunk_faq, chunk_guide
 from embedding import embedding, get_device_info
+from llm_client import get_llm_client
+from config import settings
+from context_analyzer import should_use_chat_history, is_greeting_or_smalltalk
 
 load_dotenv()
-api = os.getenv("api_key")
 
-client = Groq(api_key=api)
-
-MODEL = "meta-llama/llama-4-scout-17b-16e-instruct"
+logger = logging.getLogger(__name__)
 
 
-def build_index(batch_size=32):
-    import json
-    import os
+def build_index(batch_size: Optional[int] = None) -> None:
+    if batch_size is None:
+        batch_size = settings.EMBEDDING_BATCH_SIZE
 
     device_info = get_device_info()
-    print(f"Dang su dung: {device_info}")
+    logger.info(f"Building index on device: {device_info}")
 
-    os.makedirs("embeddings", exist_ok=True)
+    os.makedirs(settings.EMBEDDINGS_DIR, exist_ok=True)
 
-    faq = json.load(open("data/faq.json", encoding="utf-8"))
-    guide = json.load(open("data/guide.json", encoding="utf-8"))
+    logger.info("Loading data files...")
+    with open(settings.FAQ_FILE, encoding="utf-8") as f:
+        faq = json.load(f)
+    with open(settings.GUIDE_FILE, encoding="utf-8") as f:
+        guide = json.load(f)
 
+    logger.info("Chunking documents...")
     docs = chunk_faq(faq) + chunk_guide(guide)
     texts = [d["text"] for d in docs]
     metadatas = [{"text": d["text"], **d["metadata"]} for d in docs]
 
-    print(f"Dang tao embedding cho {len(texts)} documents...")
+    logger.info(f"Creating embeddings for {len(texts)} documents with batch_size={batch_size}...")
     embeddings = embedding(texts, batch_size=batch_size)
 
+    if embeddings is None:
+        raise ValueError("Failed to create embeddings")
+
+    logger.info(f"Creating FAISS index with dimension {embeddings.shape[1]}")
     index = faiss.IndexFlatL2(embeddings.shape[1])
     index.add(embeddings)
 
-    faiss.write_index(index, "embeddings/faiss_index.bin")
-    with open("embeddings/metadata.pkl", "wb") as f:
+    logger.info(f"Saving index to {settings.INDEX_PATH}")
+    faiss.write_index(index, settings.INDEX_PATH)
+
+    with open(settings.METADATA_PATH, "wb") as f:
         pickle.dump(metadatas, f)
 
-    print(f"Da tao index voi {embeddings.shape[0]} embeddings")
+    logger.info(f"Successfully created index with {embeddings.shape[0]} embeddings")
+    logger.info(f"Index dimension: {embeddings.shape[1]}")
+    logger.info(f"Similarity threshold: {settings.SIMILARITY_THRESHOLD}")
 
 
-def search_rag(query, k=10):
-    import pickle
-    import faiss
-    from embedding import embedding
+def search_rag(query: str, k: Optional[int] = None) -> List[Dict]:
+    import time
+
+    if k is None:
+        k = settings.TOP_K_DEFAULT
+
+    start_time = time.time()
 
     query = query.strip().lower()
+    logger.debug(f"Searching for: '{query[:100]}...' with k={k}")
 
-    index = faiss.read_index("embeddings/faiss_index.bin")
-    metadata = pickle.load(open("embeddings/metadata.pkl", "rb"))
+    index = faiss.read_index(settings.INDEX_PATH)
+    with open(settings.METADATA_PATH, "rb") as f:
+        metadata = pickle.load(f)
 
     q_emb = embedding([query])
+    if q_emb is None:
+        logger.error("Failed to create query embedding")
+        return []
+
     D, I = index.search(q_emb, k)
 
-    threshold = 1.2
+    search_time = time.time() - start_time
+    logger.debug(f"FAISS search completed in {search_time:.3f}s")
+
+    threshold = settings.SIMILARITY_THRESHOLD
     contexts = []
+
     for dist, idx in zip(D[0], I[0]):
         if dist < threshold:
             contexts.append(metadata[idx])
+            logger.debug(f"Context found with distance: {dist:.4f}")
+
     if not contexts:
-        contexts = [metadata[i] for i in I[0]]
+        logger.warning(f"No contexts found below threshold {threshold}, using fallback")
+        fallback_k = min(settings.TOP_K_FALLBACK, k)
+        contexts = [metadata[i] for i in I[0][:fallback_k]]
+        logger.info(f"Fallback: returning top {len(contexts)} contexts")
+    else:
+        logger.info(f"Found {len(contexts)} contexts below threshold {threshold}")
+
     return contexts
 
 
-def generate_answer(query, contexts, chat_history=None, temperature=0.7, max_tokens=2048):
-    prompt = f"Dưới đây là các thông tin liên quan đến câu hỏi của người dùng:\n"
-    for i, context in enumerate(contexts, 1):
-        info_type = context.get("type", "")
-        if info_type == "faq":
-            prompt += f"[FAQ] Thông tin {i}:\n{context.get('text', '')}\n\n"
-        else:
-            prompt += f"Thông tin {i}:\n{context.get('text', '')}\n\n"
+def get_answer(
+    query: str,
+    chat_history: Optional[List[Dict]] = None,
+    k: Optional[int] = None,
+    temperature: Optional[float] = None,
+    max_tokens: Optional[int] = None
+) -> Dict:
+    import time
 
-    prompt += f"Câu hỏi của khách hàng: {query}\n\n"
-    prompt += "Vui lòng trả lời dựa trên các thông tin trên."
-    prompt += "Nếu không đủ thông tin, hãy nói rõ bạn không thể trả lời chính xác."
-    prompt += "Trả lời đầy đủ, rõ ý, dễ hiểu bằng tiếng Việt."
-    prompt += "Nếu người dùng hỏi câu hỏi không liên quan đến thủ tục hành chính trong Dịch vụ công Quốc gia, hãy nói rõ bạn không thể trả lời và không đưa thông tin gì thêm."
-    prompt += "Hãy đưa các đường dẫn liên quan đến câu hỏi về thủ tục hành chính trong Dịch vụ công Quốc gia của người dùng nếu có thể."
+    start_time = time.time()
 
-    messages = [
-        {"role": "system",
-         "content": """Bạn là một trợ lý hỗ trợ người dân về Dịch vụ công Quốc gia, 
-                    chuyên trả lời các câu hỏi về Dịch vụ công Quốc gia, 
-                    hướng dẫn người dân thực hiện các thủ tục hành chính.
-                    Hãy tham khảo lịch sử cuộc trò chuyện để hiểu ngữ cảnh và trả lời phù hợp."""}
-    ]
+    logger.info(f"Processing query: '{query[:100]}...'")
 
-    if chat_history:
-        for msg in chat_history[-5:]:
-            messages.append({
-                "role": msg.role,
-                "content": msg.content
-            })
+    if is_greeting_or_smalltalk(query):
+        logger.info("Greeting/small talk detected → skipping RAG search")
+        contexts = []
+    else:
+        contexts = search_rag(query, k)
 
-    messages.append({"role": "user", "content": prompt})
+    use_history = should_use_chat_history(query, chat_history)
+
+    llm_client = get_llm_client()
 
     try:
-        response = client.chat.completions.create(
-            model=MODEL,
-            messages=messages,
+        answer = llm_client.generate_answer(
+            query=query,
+            contexts=contexts,
+            chat_history=chat_history,
+            use_history=use_history,
             temperature=temperature,
             max_tokens=max_tokens
         )
-        return response.choices[0].message.content
     except Exception as e:
-        return f"Đã xảy ra lỗi khi tạo câu trả lời: {str(e)}"
+        logger.error(f"LLM generation failed: {str(e)}")
+        answer = (
+            "Xin lỗi, hệ thống tạm thời không thể tạo câu trả lời. "
+            "Vui lòng thử lại sau hoặc liên hệ hỗ trợ kỹ thuật."
+        )
 
-
-def get_answer(query, chat_history=None, k=10, temperature=0.7, max_tokens=2048):
-    contexts = search_rag(query, k)
-
-    answer = generate_answer(query, contexts, chat_history, temperature, max_tokens)
+    total_time = time.time() - start_time
+    logger.info(f"Query processed in {total_time:.3f}s")
 
     return {
         "query": query,

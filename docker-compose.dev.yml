@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  chatbot-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: chatbot-dichvucong-dev
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_ENV=development
+      - DEBUG=True
+      - HOST=0.0.0.0
+      - PORT=8000
+      - LOG_LEVEL=DEBUG
+      - ENABLE_CACHE=True
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+      - ./embeddings:/app/embeddings
+    command: >
+      uvicorn app:app 
+      --host 0.0.0.0 
+      --port 8000 
+      --reload 
+      --log-level debug
+    restart: unless-stopped
+    networks:
+      - chatbot-dev-network
+
+networks:
+  chatbot-dev-network:
+    driver: bridge
