@@ -509,13 +509,6 @@ document.addEventListener("DOMContentLoaded", function () {
             );
         });
 
-    document.querySelector(".emoji-btn").addEventListener("click", function () {
-        appendMessage(
-            "bot",
-            "Tính năng emoji sẽ được cập nhật trong đợt nâng cấp sắp tới. Cảm ơn bạn đã quan tâm đến dịch vụ công."
-        );
-    });
-
     function smoothScrollToBottom() {
         chatBox.scrollTo({
             top: chatBox.scrollHeight,
