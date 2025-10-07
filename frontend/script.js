@@ -60,7 +60,88 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    function parseMarkdownTable(text) {
+        const lines = text.split("\n");
+        let inTable = false;
+        let result = [];
+        let tableBuffer = [];
+
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim();
+
+            if (line.startsWith("|") && line.endsWith("|")) {
+                if (!inTable) {
+                    inTable = true;
+                    tableBuffer = [];
+                }
+                tableBuffer.push(line);
+            } else {
+                if (inTable) {
+                    if (tableBuffer.length >= 2) {
+                        const tableHtml = convertTableToHtml(tableBuffer);
+                        result.push(tableHtml);
+                    }
+                    tableBuffer = [];
+                    inTable = false;
+                }
+                if (line) {
+                    result.push(line);
+                }
+            }
+        }
+
+        if (inTable && tableBuffer.length >= 2) {
+            const tableHtml = convertTableToHtml(tableBuffer);
+            result.push(tableHtml);
+        }
+
+        return result.join("\n");
+    }
+
+    function convertTableToHtml(tableLines) {
+        if (tableLines.length < 2) return "";
+
+        const headerLine = tableLines[0];
+        const headers = headerLine
+            .split("|")
+            .filter((cell) => cell.trim())
+            .map((cell) => cell.trim());
+
+        const dataLines = tableLines.slice(2);
+
+        let html =
+            '<div class="markdown-table-wrapper"><table class="markdown-table">';
+
+        html += "<thead><tr>";
+        headers.forEach((header) => {
+            html += `<th>${header}</th>`;
+        });
+        html += "</tr></thead>";
+
+        html += "<tbody>";
+        dataLines.forEach((line) => {
+            const cells = line
+                .split("|")
+                .filter((cell) => cell.trim())
+                .map((cell) => cell.trim());
+
+            if (cells.length > 0) {
+                html += "<tr>";
+                cells.forEach((cell) => {
+                    html += `<td>${cell}</td>`;
+                });
+                html += "</tr>";
+            }
+        });
+        html += "</tbody>";
+
+        html += "</table></div>";
+        return html;
+    }
+
     function formatMarkdown(text) {
+        text = parseMarkdownTable(text);
+
         let html = text
             .replace(/^### (.*$)/gim, "<h3>$1</h3>")
             .replace(/^## (.*$)/gim, "<h2>$1</h2>")
@@ -218,11 +299,9 @@ document.addEventListener("DOMContentLoaded", function () {
     function sendMessage(message) {
         if (!message.trim()) return;
 
-        // Add user message
         appendMessage("user", message);
         userInput.value = "";
 
-        // Show loading state
         setLoadingState(true);
         showTypingIndicator();
 

@@ -40,10 +40,12 @@ class Settings:
             ]
 
     GROQ_API_KEY: Optional[str] = os.getenv("GROQ_API_KEY")
-    LLM_MODEL: str = os.getenv("LLM_MODEL", "meta-llama/llama-4-scout-17b-16e-instruct")
-    LLM_TEMPERATURE: float = float(os.getenv("LLM_TEMPERATURE", "0.7"))
-    LLM_MAX_TOKENS: int = int(os.getenv("LLM_MAX_TOKENS", "2048"))
-    LLM_TIMEOUT: int = int(os.getenv("LLM_TIMEOUT", "30"))
+    LLM_MODEL: str = os.getenv("LLM_MODEL", "openai/gpt-oss-120b")
+    LLM_TEMPERATURE: float = float(os.getenv("LLM_TEMPERATURE", "1"))
+    LLM_MAX_TOKENS: int = int(os.getenv("LLM_MAX_TOKENS", "8192"))
+    LLM_TIMEOUT: int = int(os.getenv("LLM_TIMEOUT", "60"))
+    LLM_REASONING_EFFORT: str = os.getenv("LLM_REASONING_EFFORT", "medium")
+    LLM_STREAM: bool = os.getenv("LLM_STREAM", "True").lower() == "true"
 
     EMBEDDING_MODEL: str = os.getenv(
         "EMBEDDING_MODEL",
