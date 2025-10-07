@@ -145,7 +145,7 @@ class LLMClient:
         return """Bạn là trợ lý AI chuyên về Dịch vụ công Quốc gia của Việt Nam.
 
 Nhiệm vụ của bạn:
-- Hỗ trợ người dân về các thủ tục hành chính công
+- Hỗ trợ người dân về các thủ tục hành chính và dịch vụ công
 - Hướng dẫn sử dụng dịch vụ công trực tuyến
 - Trả lời các câu hỏi về quy trình, giấy tờ cần thiết
 - Cung cấp thông tin chính xác dựa trên dữ liệu được cung cấp
