@@ -1357,7 +1357,7 @@ This project was created to improve access to Vietnamese public administrative s
 
 <div align="center">
 
-**Made with AI Thực chiến - ITPTIT**
+**Made by Phuc Tran Huu - ITPTIT**
 
 [⬆ Back to Top](#-vietnamese-public-service-chatbot-chatbot-dịch-vụ-công)
 
