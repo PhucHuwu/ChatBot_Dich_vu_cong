@@ -697,6 +697,182 @@ body {
     color: rgba(0, 0, 0, 0.8);
 }
 
+.markdown-blockquote {
+    border-left: 4px solid #ce7a58;
+    background: #fef8f5;
+    padding: 12px 20px;
+    margin: 15px 0;
+    border-radius: 0 8px 8px 0;
+    font-style: italic;
+    color: #4b5563;
+}
+
+.user-bubble .markdown-blockquote {
+    border-left-color: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.markdown-blockquote p {
+    margin: 8px 0;
+}
+
+.markdown-blockquote p:first-child {
+    margin-top: 0;
+}
+
+.markdown-blockquote p:last-child {
+    margin-bottom: 0;
+}
+
+.markdown-hr {
+    border: none;
+    border-top: 2px solid #e5e7eb;
+    margin: 20px 0;
+    opacity: 0.6;
+}
+
+.user-bubble .markdown-hr {
+    border-top-color: rgba(255, 255, 255, 0.3);
+}
+
+.markdown-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin: 15px 0;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+    display: block;
+}
+
+.message-bubble del,
+.message-bubble s {
+    text-decoration: line-through;
+    opacity: 0.7;
+}
+
+.message-bubble mark {
+    background-color: #fef3c7;
+    color: #92400e;
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+
+.user-bubble mark {
+    background-color: rgba(255, 255, 255, 0.3);
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.message-bubble kbd {
+    background-color: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-family: monospace;
+    font-size: 13px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.user-bubble kbd {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.message-bubble ul ul,
+.message-bubble ul ol,
+.message-bubble ol ul,
+.message-bubble ol ol {
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.message-bubble dl {
+    margin: 10px 0;
+}
+
+.message-bubble dt {
+    font-weight: 600;
+    margin-top: 10px;
+    color: #1f2937;
+}
+
+.user-bubble dt {
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.message-bubble dd {
+    margin-left: 20px;
+    margin-top: 5px;
+    color: #4b5563;
+}
+
+.user-bubble dd {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.message-bubble .task-list-item {
+    list-style-type: none;
+    position: relative;
+    padding-left: 25px;
+}
+
+.message-bubble .task-list-item input[type="checkbox"] {
+    position: absolute;
+    left: 0;
+    top: 4px;
+    margin: 0;
+    cursor: pointer;
+}
+
+.message-bubble pre code {
+    background: transparent;
+    padding: 0;
+    border: none;
+    color: inherit;
+}
+
+.message-bubble pre {
+    position: relative;
+    max-width: 100%;
+}
+
+.message-bubble pre code::before {
+    content: attr(class);
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    font-size: 10px;
+    text-transform: uppercase;
+    color: #9ca3af;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.message-bubble table:not(.markdown-table) {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 15px 0;
+    font-size: 14px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.message-bubble table:not(.markdown-table) th,
+.message-bubble table:not(.markdown-table) td {
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.message-bubble table:not(.markdown-table) th {
+    background: #f9fafb;
+    font-weight: 600;
+    color: #374151;
+}
+
 .chat-link {
     color: #ce7a58 !important;
     text-decoration: none !important;
@@ -873,6 +1049,22 @@ body {
     .markdown-table thead th {
         font-size: 12px;
     }
+
+    .markdown-blockquote {
+        padding: 10px 15px;
+        margin: 10px 0;
+        font-size: 13px;
+    }
+
+    .markdown-image {
+        margin: 10px 0;
+        max-width: 100%;
+    }
+
+    .message-bubble pre {
+        font-size: 12px;
+        overflow-x: auto;
+    }
 }
 
 @media (max-width: 480px) {
@@ -928,6 +1120,25 @@ body {
         font-size: 11px;
         white-space: normal;
         min-width: 100px;
+    }
+
+    .markdown-blockquote {
+        padding: 8px 12px;
+        margin: 8px 0;
+        font-size: 12px;
+    }
+
+    .markdown-image {
+        margin: 8px 0;
+    }
+
+    .message-bubble pre {
+        font-size: 11px;
+        padding: 10px;
+    }
+
+    .message-bubble code {
+        font-size: 11px;
     }
 }
 

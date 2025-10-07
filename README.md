@@ -47,6 +47,7 @@ A production-ready RAG (Retrieval-Augmented Generation) chatbot system designed 
 -   **Batch Processing**: Optimized embedding generation for large datasets
 -   **Health Checks**: Liveness and readiness probes for orchestration
 -   **Error Recovery**: Graceful degradation with retry mechanisms
+-   **Rich Markdown Support**: Full GFM (GitHub Flavored Markdown) rendering with tables, code blocks, and more
 
 ## Architecture
 
@@ -349,6 +350,57 @@ The system automatically validates critical configurations on startup:
     - Type your question in Vietnamese
     - Press Enter or click Send
     - View response with source attributions
+    - Enjoy rich markdown formatting (tables, code blocks, etc.)
+
+### Markdown Support 📝
+
+The frontend fully supports **GitHub Flavored Markdown (GFM)** for rich content display. The chatbot can return responses with:
+
+#### Supported Formats:
+
+| Feature              | Example                | Description                      |
+| -------------------- | ---------------------- | -------------------------------- |
+| **Tables**           | `\| Header \| Cell \|` | Styled tables with hover effects |
+| **Code Blocks**      | ` ```python ``` `      | Syntax-highlighted code          |
+| **Inline Code**      | `` `code` ``           | Monospace inline text            |
+| **Bold/Italic**      | `**bold**`, `*italic*` | Text emphasis                    |
+| **Lists**            | `- item` or `1. item`  | Ordered/unordered lists          |
+| **Links**            | `[text](url)`          | Auto-detected external links     |
+| **Blockquotes**      | `> quote`              | Styled quotations                |
+| **Headers**          | `# H1`, `## H2`        | Section headers                  |
+| **Horizontal Rules** | `---`                  | Section dividers                 |
+| **Strikethrough**    | `~~text~~`             | Crossed-out text                 |
+
+#### Special Auto-Detection:
+
+-   **Phone Numbers**: `0123456789` → Clickable `tel:` link with phone icon
+-   **Email Addresses**: `support@example.com` → Clickable `mailto:` link with envelope icon
+-   **URLs**: `https://example.com` → External link with icon
+
+#### Example Response:
+
+```markdown
+## Các phương thức thanh toán
+
+| Phương thức      | Phí          | Thời gian |
+| ---------------- | ------------ | --------- |
+| Internet Banking | **Miễn phí** | 1-2 phút  |
+| Ví điện tử       | 1,000 VNĐ    | Tức thì   |
+
+### Hướng dẫn:
+
+1. Chọn **phương thức** phù hợp
+2. Làm theo _hướng dẫn_ trên màn hình
+3. Nhập mã OTP để xác nhận
+
+> **Lưu ý:** Kiểm tra kỹ thông tin trước khi xác nhận
+
+Liên hệ hỗ trợ: 18008798 hoặc support@dichvucong.gov.vn
+```
+
+📚 **Full Documentation**: See [Markdown Support Guide](docs/MARKDOWN_SUPPORT.md) for complete feature list and examples.
+
+🧪 **Test Page**: Open `frontend/markdown-test.html` to see all markdown features in action.
 
 ### API Usage
 

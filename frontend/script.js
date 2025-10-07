@@ -9,6 +9,77 @@ document.addEventListener("DOMContentLoaded", function () {
     let chatHistory = [];
     const MAX_HISTORY_LENGTH = 10;
 
+    if (typeof marked !== "undefined") {
+        marked.setOptions({
+            breaks: true,
+            gfm: true,
+            headerIds: true,
+            mangle: false,
+            sanitize: false,
+        });
+
+        const renderer = new marked.Renderer();
+
+        renderer.link = function (href, title, text) {
+            const isExternal =
+                href.startsWith("http") || href.startsWith("www");
+            const actualHref = href.startsWith("www")
+                ? "https://" + href
+                : href;
+            const titleAttr = title ? ` title="${title}"` : "";
+
+            if (isExternal) {
+                return `<a href="${actualHref}" target="_blank" rel="noopener noreferrer" class="chat-link"${titleAttr}>${text} <i class="fas fa-external-link-alt"></i></a>`;
+            }
+            return `<a href="${actualHref}" class="chat-link"${titleAttr}>${text}</a>`;
+        };
+
+        renderer.code = function (code, language) {
+            const langClass = language ? ` class="language-${language}"` : "";
+            return `<pre><code${langClass}>${escapeHtml(code)}</code></pre>`;
+        };
+
+        renderer.codespan = function (code) {
+            return `<code>${escapeHtml(code)}</code>`;
+        };
+
+        renderer.table = function (header, body) {
+            return `<div class="markdown-table-wrapper">
+                <table class="markdown-table">
+                    <thead>${header}</thead>
+                    <tbody>${body}</tbody>
+                </table>
+            </div>`;
+        };
+
+        renderer.blockquote = function (quote) {
+            return `<blockquote class="markdown-blockquote">${quote}</blockquote>`;
+        };
+
+        renderer.image = function (href, title, text) {
+            const titleAttr = title ? ` title="${title}"` : "";
+            const altAttr = text ? ` alt="${text}"` : "";
+            return `<img src="${href}"${altAttr}${titleAttr} class="markdown-image" loading="lazy">`;
+        };
+
+        renderer.hr = function () {
+            return '<hr class="markdown-hr">';
+        };
+
+        marked.setOptions({ renderer: renderer });
+    }
+
+    function escapeHtml(text) {
+        const map = {
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#039;",
+        };
+        return text.replace(/[&<>"']/g, (m) => map[m]);
+    }
+
     function getCurrentTime() {
         const now = new Date();
         return now.toLocaleTimeString("vi-VN", {
@@ -60,88 +131,171 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    function parseMarkdownTable(text) {
-        const lines = text.split("\n");
-        let inTable = false;
-        let result = [];
-        let tableBuffer = [];
-
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i].trim();
-
-            if (line.startsWith("|") && line.endsWith("|")) {
-                if (!inTable) {
-                    inTable = true;
-                    tableBuffer = [];
-                }
-                tableBuffer.push(line);
-            } else {
-                if (inTable) {
-                    if (tableBuffer.length >= 2) {
-                        const tableHtml = convertTableToHtml(tableBuffer);
-                        result.push(tableHtml);
-                    }
-                    tableBuffer = [];
-                    inTable = false;
-                }
-                if (line) {
-                    result.push(line);
-                }
-            }
-        }
-
-        if (inTable && tableBuffer.length >= 2) {
-            const tableHtml = convertTableToHtml(tableBuffer);
-            result.push(tableHtml);
-        }
-
-        return result.join("\n");
-    }
-
-    function convertTableToHtml(tableLines) {
-        if (tableLines.length < 2) return "";
-
-        const headerLine = tableLines[0];
-        const headers = headerLine
-            .split("|")
-            .filter((cell) => cell.trim())
-            .map((cell) => cell.trim());
-
-        const dataLines = tableLines.slice(2);
-
-        let html =
-            '<div class="markdown-table-wrapper"><table class="markdown-table">';
-
-        html += "<thead><tr>";
-        headers.forEach((header) => {
-            html += `<th>${header}</th>`;
-        });
-        html += "</tr></thead>";
-
-        html += "<tbody>";
-        dataLines.forEach((line) => {
-            const cells = line
-                .split("|")
-                .filter((cell) => cell.trim())
-                .map((cell) => cell.trim());
-
-            if (cells.length > 0) {
-                html += "<tr>";
-                cells.forEach((cell) => {
-                    html += `<td>${cell}</td>`;
-                });
-                html += "</tr>";
-            }
-        });
-        html += "</tbody>";
-
-        html += "</table></div>";
-        return html;
-    }
-
     function formatMarkdown(text) {
-        text = parseMarkdownTable(text);
+        if (!text) return "";
 
+        try {
+            if (typeof marked !== "undefined") {
+                let html = marked.parse(text);
+
+                if (typeof DOMPurify !== "undefined") {
+                    html = DOMPurify.sanitize(html, {
+                        ALLOWED_TAGS: [
+                            "h1",
+                            "h2",
+                            "h3",
+                            "h4",
+                            "h5",
+                            "h6",
+                            "p",
+                            "br",
+                            "hr",
+                            "strong",
+                            "em",
+                            "u",
+                            "s",
+                            "del",
+                            "mark",
+                            "a",
+                            "code",
+                            "pre",
+                            "ul",
+                            "ol",
+                            "li",
+                            "table",
+                            "thead",
+                            "tbody",
+                            "tr",
+                            "th",
+                            "td",
+                            "blockquote",
+                            "div",
+                            "span",
+                            "img",
+                            "i",
+                        ],
+                        ALLOWED_ATTR: [
+                            "href",
+                            "title",
+                            "target",
+                            "rel",
+                            "class",
+                            "src",
+                            "alt",
+                            "loading",
+                        ],
+                    });
+                }
+
+                html = enhanceLinks(html);
+
+                return html;
+            }
+
+            return fallbackMarkdown(text);
+        } catch (error) {
+            console.error("Error parsing markdown:", error);
+            return fallbackMarkdown(text);
+        }
+    }
+
+    function enhanceLinks(html) {
+        const temp = document.createElement("div");
+        temp.innerHTML = html;
+
+        const links = temp.querySelectorAll("a:not(.chat-link)");
+        links.forEach((link) => {
+            const href = link.getAttribute("href");
+
+            if (href && href.startsWith("tel:")) {
+                link.classList.add("chat-link", "phone-link");
+                const icon = document.createElement("i");
+                icon.className = "fas fa-phone";
+                link.insertBefore(icon, link.firstChild);
+                link.insertBefore(
+                    document.createTextNode(" "),
+                    icon.nextSibling
+                );
+            } else if (href && href.startsWith("mailto:")) {
+                link.classList.add("chat-link", "email-link");
+                const icon = document.createElement("i");
+                icon.className = "fas fa-envelope";
+                link.insertBefore(icon, link.firstChild);
+                link.insertBefore(
+                    document.createTextNode(" "),
+                    icon.nextSibling
+                );
+            }
+        });
+
+        const walker = document.createTreeWalker(
+            temp,
+            NodeFilter.SHOW_TEXT,
+            null,
+            false
+        );
+
+        const textNodes = [];
+        let node;
+        while ((node = walker.nextNode())) {
+            textNodes.push(node);
+        }
+
+        textNodes.forEach((textNode) => {
+            if (
+                textNode.parentElement.tagName === "A" ||
+                textNode.parentElement.tagName === "CODE" ||
+                textNode.parentElement.tagName === "PRE"
+            ) {
+                return;
+            }
+
+            let text = textNode.textContent;
+
+            const phoneRegex = /(\+84|0)([0-9]{9,10})\b/g;
+            if (phoneRegex.test(text)) {
+                const span = document.createElement("span");
+                span.innerHTML = text.replace(
+                    phoneRegex,
+                    '<a href="tel:$1$2" class="chat-link phone-link"><i class="fas fa-phone"></i> $1$2</a>'
+                );
+                textNode.parentNode.replaceChild(span, textNode);
+
+                if (
+                    span.childNodes.length === 1 &&
+                    span.firstChild.nodeType === 1
+                ) {
+                    span.parentNode.replaceChild(span.firstChild, span);
+                } else {
+                    while (span.firstChild) {
+                        span.parentNode.insertBefore(span.firstChild, span);
+                    }
+                    span.parentNode.removeChild(span);
+                }
+            }
+
+            const emailRegex =
+                /\b([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\b/g;
+            text = textNode.textContent;
+            if (emailRegex.test(text)) {
+                const span = document.createElement("span");
+                span.innerHTML = text.replace(
+                    emailRegex,
+                    '<a href="mailto:$1" class="chat-link email-link"><i class="fas fa-envelope"></i> $1</a>'
+                );
+                textNode.parentNode.replaceChild(span, textNode);
+
+                while (span.firstChild) {
+                    span.parentNode.insertBefore(span.firstChild, span);
+                }
+                span.parentNode.removeChild(span);
+            }
+        });
+
+        return temp.innerHTML;
+    }
+
+    function fallbackMarkdown(text) {
         let html = text
             .replace(/^### (.*$)/gim, "<h3>$1</h3>")
             .replace(/^## (.*$)/gim, "<h2>$1</h2>")
@@ -151,61 +305,22 @@ document.addEventListener("DOMContentLoaded", function () {
             .replace(/__(.*?)__/g, "<strong>$1</strong>")
 
             .replace(/\*(.*?)\*/g, "<em>$1</em>")
-            .replace(/_(.*?)_/g, "<em>1</em>")
+            .replace(/_(.*?)_/g, "<em>$1</em>")
 
-            .replace(/\`\`\`([\s\S]*?)\`\`\`/g, "<pre><code>$1</code></pre>")
+            .replace(/```([\s\S]*?)```/g, "<pre><code>$1</code></pre>")
             .replace(/`(.*?)`/g, "<code>$1</code>")
 
             .replace(
-                /\[([^\]]+)\]$$([^)]+)$$/g,
+                /\[([^\]]+)\]\(([^)]+)\)/g,
                 '<a href="$2" target="_blank" rel="noopener noreferrer" class="chat-link">$1 <i class="fas fa-external-link-alt"></i></a>'
-            )
-
-            .replace(
-                /(https?:\/\/[^\s<>"{}|\\^`[\]]+)/g,
-                '<a href="$1" target="_blank" rel="noopener noreferrer" class="chat-link auto-link">$1 <i class="fas fa-external-link-alt"></i></a>'
-            )
-            .replace(
-                /(?<!https?:\/\/)(www\.[^\s<>"{}|\\^`[\]]+)/g,
-                '<a href="https://$1" target="_blank" rel="noopener noreferrer" class="chat-link auto-link">$1 <i class="fas fa-external-link-alt"></i></a>'
-            )
-
-            .replace(
-                /(\+84|0)([0-9]{9,10})/g,
-                '<a href="tel:$1$2" class="chat-link phone-link"><i class="fas fa-phone"></i> $1$2</a>'
-            )
-
-            .replace(
-                /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g,
-                '<a href="mailto:$1" class="chat-link email-link"><i class="fas fa-envelope"></i> $1</a>'
             )
 
             .replace(/\n\n/g, "</p><p>")
             .replace(/\n/g, "<br>")
 
-            .replace(/^\d+\.\s+(.*$)/gim, "<li>$1</li>")
-            .replace(/^[\-\*\+]\s+(.*$)/gim, "<li>$1</li>")
-
-            .replace(/^(?!<[h|l|p|d])/gm, "<p>")
+            .replace(/^(?!<[h|p])/gm, "<p>")
             .replace(/(?<!>)$/gm, "</p>")
-
-            .replace(/<p><\/p>/g, "")
-            .replace(/<p>(<[h|l])/g, "$1")
-            .replace(/(<\/[h|l][^>]*>)<\/p>/g, "$1")
-
-            .replace(/(<li>.*<\/li>)/gs, function (match) {
-                const isNumbered = /^\d+\./.test(
-                    text.match(/^\d+\.\s+.*$/m)?.[0] || ""
-                );
-                const tag = isNumbered ? "ol" : "ul";
-                return `<${tag}>${match}</${tag}>`;
-            });
-
-        html = html
-            .replace(/<p><br>/g, "<p>")
-            .replace(/<br><\/p>/g, "</p>")
-            .replace(/(<\/[uo]l>)<\/p>/g, "$1")
-            .replace(/<p>(<[uo]l>)/g, "$1");
+            .replace(/<p><\/p>/g, "");
 
         return html;
     }
