@@ -15,11 +15,14 @@ services:
       - PORT=8000
       - LOG_LEVEL=DEBUG
       - ENABLE_CACHE=True
+      - GROQ_API_KEY=${GROQ_API_KEY}
     env_file:
       - .env
     volumes:
       - .:/app
       - ./embeddings:/app/embeddings
+    # Override entrypoint để dùng uvicorn reload cho dev
+    entrypoint: []
     command: >
       uvicorn app:app 
       --host 0.0.0.0 
