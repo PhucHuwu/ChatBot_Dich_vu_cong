@@ -5,27 +5,31 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://www.docker.com/)
 
-A production-ready RAG (Retrieval-Augmented Generation) chatbot system designed specifically for Vietnamese public administrative services. The system provides accurate, context-aware responses about government procedures, FAQs, and public service guidelines using advanced NLP and vector search technologies.
+A production-ready RAG (Retrieval-Augmented Generation) chatbot system designed specifically for Vietnamese public administrative services. This system provides accurate, context-aware responses about government procedures, FAQs, and public service guidelines using advanced NLP and vector search technologies.
+
+---
 
 ## Table of Contents
 
--   [Features](#-features)
--   [Architecture](#-architecture)
--   [Tech Stack](#-tech-stack)
--   [Prerequisites](#-prerequisites)
--   [Installation](#-installation)
--   [Configuration](#-configuration)
--   [Usage](#-usage)
--   [API Documentation](#-api-documentation)
--   [Deployment](#-deployment)
--   [Testing](#-testing)
--   [Performance Optimization](#-performance-optimization)
--   [Monitoring & Logging](#-monitoring--logging)
--   [Contributing](#-contributing)
--   [Troubleshooting](#-troubleshooting)
--   [License](#-license)
+-   [Features](#features)
+-   [Architecture](#architecture)
+-   [Tech Stack](#tech-stack)
+-   [Prerequisites](#prerequisites)
+-   [Installation](#installation)
+-   [Configuration](#configuration)
+-   [Usage](#usage)
+-   [API Documentation](#api-documentation)
+-   [Deployment](#deployment)
+-   [Testing](#testing)
+-   [Performance Optimization](#performance-optimization)
+-   [Monitoring & Logging](#monitoring--logging)
+-   [Contributing](#contributing)
+-   [Troubleshooting](#troubleshooting)
+-   [License](#license)
 
 ## Features
+
+This chatbot brings powerful AI capabilities to help citizens access public services more easily.
 
 ### Core Capabilities
 
@@ -131,10 +135,13 @@ A production-ready RAG (Retrieval-Augmented Generation) chatbot system designed 
 
 ### API Keys
 
--   **Groq API Key**: Required for LLM functionality
-    -   Get yours at: [https://console.groq.com](https://console.groq.com)
+You'll need a **Groq API Key** for LLM functionality:
+
+-   Get your free API key at: [https://console.groq.com](https://console.groq.com)
 
 ## Installation
+
+Choose the installation method that best fits your needs:
 
 ### Method 1: Local Development Setup
 
@@ -171,11 +178,11 @@ pip install -r requirements-dev.txt
 #### 4. Set Up Environment Variables
 
 ```bash
-# Copy example environment file
+# Copy example environment file (if available)
 cp .env.example .env
 
 # Edit .env with your configuration
-# Required: Set GROQ_API_KEY
+# REQUIRED: Set your GROQ_API_KEY
 ```
 
 #### 5. Build Vector Index
@@ -201,6 +208,8 @@ gunicorn app:app \
 ```
 
 ### Method 2: Docker Deployment
+
+**Recommended for production environments and quick setup.**
 
 #### 1. Using Docker Compose (Recommended)
 
@@ -248,88 +257,43 @@ uvicorn app:app --reload --host 0.0.0.0 --port 8000
 
 ### Environment Variables
 
-Create a `.env` file in the project root:
+Create a `.env` file in the project root. See [`.env.example`](.env.example) for a complete list of configuration options.
+
+**Key configurations:**
 
 ```bash
-# ============================================
-# APPLICATION SETTINGS
-# ============================================
+# Required
+GROQ_API_KEY=your_groq_api_key_here
+
+# Application
 APP_ENV=development              # development | staging | production
-DEBUG=False                      # Enable debug mode (False in production)
-HOST=0.0.0.0                    # Server host
-PORT=8000                       # Server port
-WORKERS=4                       # Number of worker processes
+DEBUG=False
+HOST=0.0.0.0
+PORT=8000
 
-# ============================================
-# SECURITY & CORS
-# ============================================
-ALLOWED_ORIGINS=http://localhost:3000,https://yourdomain.gov.vn
-EXPOSE_DOCS=True                # Expose API documentation (False in production)
+# LLM
+LLM_MODEL=openai/gpt-oss-120b
+LLM_TEMPERATURE=1
+LLM_MAX_TOKENS=8192
 
-# ============================================
-# LLM CONFIGURATION (Groq)
-# ============================================
-GROQ_API_KEY=gsk_xxxxxxxxxxxxx  # REQUIRED: Your Groq API key
-LLM_MODEL=meta-llama/llama-4-scout-17b-16e-instruct
-LLM_TEMPERATURE=0.7             # 0.0 (deterministic) to 1.0 (creative)
-LLM_MAX_TOKENS=2048             # Maximum response length
-LLM_TIMEOUT=30                  # API timeout in seconds
+# Vector Search
+SIMILARITY_THRESHOLD=1.2
+TOP_K_DEFAULT=10
 
-# ============================================
-# EMBEDDING MODEL
-# ============================================
-EMBEDDING_MODEL=sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
-EMBEDDING_BATCH_SIZE=32         # Batch size for embedding generation
-EMBEDDING_DEVICE=auto           # auto | cuda | cpu
+# Cache
+ENABLE_CACHE=True
+CACHE_MAX_SIZE=1000
+CACHE_TTL=3600
 
-# ============================================
-# VECTOR SEARCH CONFIGURATION
-# ============================================
-SIMILARITY_THRESHOLD=1.2        # Distance threshold for filtering results
-TOP_K_DEFAULT=10                # Number of contexts to retrieve
-TOP_K_FALLBACK=3                # Fallback when no results meet threshold
-MAX_CONTEXTS_RESPONSE=5         # Maximum contexts in API response
-
-# ============================================
-# CACHE SETTINGS
-# ============================================
-ENABLE_CACHE=True               # Enable query caching
-CACHE_MAX_SIZE=1000             # Maximum cached queries
-CACHE_TTL=3600                  # Cache time-to-live in seconds (1 hour)
-
-# ============================================
-# LOGGING
-# ============================================
-LOG_LEVEL=INFO                  # DEBUG | INFO | WARNING | ERROR | CRITICAL
-ENABLE_JSON_LOGGING=False       # Use JSON format for logs
-LOG_FORMAT=%(asctime)s - %(name)s - %(levelname)s - %(message)s
-
-# ============================================
-# RATE LIMITING (Optional)
-# ============================================
-ENABLE_RATE_LIMIT=False         # Enable rate limiting
-RATE_LIMIT_PER_MINUTE=60        # Requests per minute per IP
-
-# ============================================
-# DATA PATHS
-# ============================================
-INDEX_PATH=embeddings/faiss_index.bin
-METADATA_PATH=embeddings/metadata.pkl
-DATA_DIR=data
-FAQ_FILE=data/faq.json
-GUIDE_FILE=data/guide.json
-
-# ============================================
-# ADVANCED SETTINGS
-# ============================================
-MAX_QUERY_LENGTH=1000           # Maximum query character length
-MAX_CHAT_HISTORY=10             # Maximum chat history to maintain
-CONTEXT_WINDOW_MESSAGES=5       # Context window for conversation
+# Logging
+LOG_LEVEL=INFO
 ```
+
+For detailed configuration options and explanations, refer to [`.env.example`](.env.example).
 
 ### Configuration Validation
 
-The system automatically validates critical configurations on startup:
+The system automatically validates critical configurations on startup (see [`config.py`](config.py)):
 
 -   `GROQ_API_KEY` is set
 -   Data directory exists
@@ -349,10 +313,10 @@ The system automatically validates critical configurations on startup:
 2. **Interact with the Chatbot**
     - Type your question in Vietnamese
     - Press Enter or click Send
-    - View response with source attributions
+    - View responses with source attributions
     - Enjoy rich markdown formatting (tables, code blocks, etc.)
 
-### Markdown Support 📝
+### Markdown Support
 
 The frontend fully supports **GitHub Flavored Markdown (GFM)** for rich content display. The chatbot can return responses with:
 
@@ -398,9 +362,13 @@ The frontend fully supports **GitHub Flavored Markdown (GFM)** for rich content 
 Liên hệ hỗ trợ: 18008798 hoặc support@dichvucong.gov.vn
 ```
 
-📚 **Full Documentation**: See [Markdown Support Guide](docs/MARKDOWN_SUPPORT.md) for complete feature list and examples.
+### API Usage
 
-🧪 **Test Page**: Open `frontend/markdown-test.html` to see all markdown features in action.
+````
+
+**Full Documentation**: See [`docs/MARKDOWN_SUPPORT.md`](docs/MARKDOWN_SUPPORT.md) for complete feature list and examples.
+
+**Test Page**: Open [`frontend/markdown-test.html`](frontend/markdown-test.html) to see all markdown features in action.
 
 ### API Usage
 
@@ -414,7 +382,7 @@ curl -X POST "http://localhost:8000/api/chat" \
     "top_k": 5,
     "chat_history": []
   }'
-```
+````
 
 #### Response Format
 
@@ -480,7 +448,7 @@ print(result["answer"])
 
 ### Rebuilding the Index
 
-When you update data files (`data/faq.json`, `data/guide.json`):
+When you update data files ([`data/faq.json`](data/faq.json), [`data/guide.json`](data/guide.json)):
 
 #### Linux/macOS:
 
@@ -785,28 +753,6 @@ server {
 }
 ```
 
-### Monitoring with Prometheus
-
-Add metrics endpoint (future enhancement):
-
-```python
-# In app.py (future)
-from prometheus_fastapi_instrumentator import Instrumentator
-
-Instrumentator().instrument(app).expose(app)
-```
-
-Prometheus configuration:
-
-```yaml
-scrape_configs:
-    - job_name: "chatbot"
-      static_configs:
-          - targets: ["localhost:8000"]
-      metrics_path: "/metrics"
-      scrape_interval: 15s
-```
-
 ## Testing
 
 ### Running Tests
@@ -835,10 +781,10 @@ tests/
 ├── conftest.py              # Shared fixtures
 ├── test_api.py              # API endpoint tests
 ├── test_chunking.py         # Data chunking tests
-├── test_context_analyzer.py # Context analysis tests
-├── test_embedding.py        # Embedding generation tests
-└── test_rag.py             # RAG pipeline tests
+└── test_context_analyzer.py # Context analysis tests
 ```
+
+See the [`tests/`](tests/) directory for all test files.
 
 ### Example Test Cases
 
@@ -892,10 +838,10 @@ def test_chat_endpoint_success(client):
 
 ### Optimization Strategies
 
-#### 1. Caching Layer
+### Caching Layer
 
 ```python
-# LRU cache for repeated queries
+# LRU cache for repeated queries (see cache.py)
 ENABLE_CACHE=True
 CACHE_MAX_SIZE=1000
 CACHE_TTL=3600  # 1 hour
@@ -928,7 +874,7 @@ index = faiss.IndexHNSWFlat(dimension, 32)
 
 ```python
 # Reuse HTTP connections to Groq API
-# Already implemented in llm_client.py
+# Already implemented in llm_client.py (see llm_client.py)
 ```
 
 ### Monitoring Performance
@@ -1083,7 +1029,7 @@ groups:
 
 ## Contributing
 
-We welcome contributions! Please follow these guidelines:
+We warmly welcome contributions from the community! Please follow these guidelines to ensure a smooth collaboration:
 
 ### Development Workflow
 
@@ -1317,9 +1263,6 @@ Enable detailed logging:
 # In .env
 DEBUG=True
 LOG_LEVEL=DEBUG
-
-# Then check logs for detailed information
-tail -f logs/app.log
 ```
 
 ### Health Check Scripts
@@ -1336,12 +1279,16 @@ tail -f logs/app.log
 .\scripts\health_check.ps1
 ```
 
+See the [`scripts/`](scripts/) directory for all available scripts.
+
 ### Getting Help
 
+If you encounter any issues:
+
 1. **Check Documentation**: Review this README and inline code comments
-2. **Search Issues**: Check [GitHub Issues](https://github.com/PhucHuwu/ChatBot_Dich_vu_cong/issues)
-3. **Enable Debug Logging**: Set `LOG_LEVEL=DEBUG`
-4. **Create Issue**: Provide logs, configuration, and steps to reproduce
+2. **Search Issues**: Check [existing GitHub Issues](https://github.com/PhucHuwu/ChatBot_Dich_vu_cong/issues) for similar problems
+3. **Enable Debug Logging**: Set `LOG_LEVEL=DEBUG` for detailed diagnostics
+4. **Create Issue**: If the problem persists, create a new issue with logs, configuration, and steps to reproduce
 
 ## License
 
@@ -1369,33 +1316,6 @@ This project was created to improve access to Vietnamese public administrative s
 
 -   **Issues**: [GitHub Issues](https://github.com/PhucHuwu/ChatBot_Dich_vu_cong/issues)
 -   **Discussions**: [GitHub Discussions](https://github.com/PhucHuwu/ChatBot_Dich_vu_cong/discussions)
--   **Email**: [Your contact email]
-
-## Roadmap
-
-### Version 1.1 (Q4 2025)
-
--   [ ] User authentication and session management
--   [ ] Multi-turn conversation context
--   [ ] Voice input support (speech-to-text)
--   [ ] Export chat history
--   [ ] Admin dashboard
-
-### Version 1.2 (Q1 2026)
-
--   [ ] Prometheus metrics exporter
--   [ ] HNSW index for large-scale data
--   [ ] Multi-language support (English, Chinese)
--   [ ] Custom fine-tuned embedding model
--   [ ] A/B testing framework
-
-### Version 2.0 (Q2 2026)
-
--   [ ] GraphQL API
--   [ ] Real-time chat with WebSockets
--   [ ] Mobile application (iOS/Android)
--   [ ] Integration with government portals
--   [ ] Advanced analytics dashboard
 
 ## Additional Resources
 
