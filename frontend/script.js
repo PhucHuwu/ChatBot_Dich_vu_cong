@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const quickActions = document.getElementById("quick-actions");
 
     let chatHistory = [];
-    const MAX_HISTORY_LENGTH = 10;
+    const MAX_HISTORY_LENGTH = CONFIG.MAX_HISTORY_LENGTH || 10;
 
     if (typeof marked !== "undefined") {
         marked.setOptions({
@@ -421,7 +421,7 @@ document.addEventListener("DOMContentLoaded", function () {
         showTypingIndicator();
 
         setTimeout(() => {
-            fetch("http://localhost:8000/api/chat", {
+            fetch(CONFIG.getApiUrl("CHAT"), {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -451,7 +451,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         "Không thể kết nối tới máy chủ. Vui lòng kiểm tra kết nối internet và thử lại."
                     );
                 });
-        }, 800);
+        }, CONFIG.TYPING_DELAY || 800);
     }
 
     chatForm.addEventListener("submit", function (e) {
@@ -480,7 +480,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 } else if (icon.classList.contains("fa-headset")) {
                     appendMessage(
                         "bot",
-                        "Bạn có thể liên hệ hỗ trợ qua số hotline: 18008798 hoặc email: dichvaccong@thongtin.gov.vn"
+                        `Bạn có thể liên hệ hỗ trợ qua số hotline: ${CONFIG.SUPPORT.HOTLINE} hoặc email: ${CONFIG.SUPPORT.EMAIL}`
                     );
                 }
             }
@@ -505,7 +505,7 @@ document.addEventListener("DOMContentLoaded", function () {
         .addEventListener("click", function () {
             appendMessage(
                 "bot",
-                "Tính năng đính kèm file sẽ được hỗ trợ trong phiên bản tiếp theo. Hiện tại bạn có thể upload file trực tiếp tại Cổng Dịch vụ công Quốc gia."
+                "Tính năng đính kèm file sẽ được hỗ trợ trong phiên bản tiếp theo."
             );
         });
 
