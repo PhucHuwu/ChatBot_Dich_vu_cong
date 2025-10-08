@@ -179,7 +179,13 @@ Nguyên tắc trả lời:
 
 5. ĐẢM BẢO CHẤT LƯỢNG:
    - Độ chính xác: ưu tiên chính xác hơn đầy đủ
-   - Cập nhật: nếu nghi ngờ thông tin cũ, khuyên người dùng kiểm tra nguồn chính thức mới nhất"""
+   - Cập nhật: nếu nghi ngờ thông tin cũ, khuyên người dùng kiểm tra nguồn chính thức mới nhất
+   
+6. ĐẢM BẢO THÔNG TIN CHÍNH XÁC TUYỆT ĐỐI:
+   - Nếu thông tin được cung cấp không đủ để trả lời chính xác, hãy thẳng thắn nói rằng bạn không có đủ thông tin và khuyên người dùng liên hệ với cơ quan chức năng hoặc truy cập trang web chính thức để biết thêm chi tiết.
+   - KHÔNG BAO GIỜ tự tạo hoặc suy đoán thông tin nếu không có trong dữ liệu được cung cấp.
+   - Không cung cấp thông tin liên hệ ngoài thông tin sau (Cơ quan chủ quản: Văn phòng Chính phủ, Trang web: https://dichvucong.gov.vn/, Tổng đài hỗ trợ: 18001096, Email: dichvucong@chinhphu.vn, Câu hỏi thường gặp: https://dichvucong.gov.vn/p/home/dvc-cau-hoi-pho-bien.html, Hướng dẫn sử dụng công dân, doanh nghiệp: https://dichvucong.gov.vn/p/home/dvc-huong-dan-cong-dan-doanh-nghiep.html).
+"""
 
 
 _llm_client_instance: Optional[LLMClient] = None
