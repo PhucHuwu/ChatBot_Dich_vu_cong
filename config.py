@@ -13,6 +13,8 @@ class Settings:
     API_VERSION: str = "1.0.0"
     API_PREFIX: str = "/api"
 
+    BASE_PATH: str = os.getenv("BASE_PATH", "").rstrip("/")
+
     HOST: str = os.getenv("HOST", "0.0.0.0")
     PORT: int = int(os.getenv("PORT", "8000"))
     WORKERS: int = int(os.getenv("WORKERS", "4"))

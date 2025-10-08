@@ -33,7 +33,8 @@ app = FastAPI(
     version=settings.API_VERSION,
     docs_url="/api/docs" if settings.EXPOSE_DOCS else None,
     redoc_url="/api/redoc" if settings.EXPOSE_DOCS else None,
-    debug=settings.DEBUG
+    debug=settings.DEBUG,
+    root_path=settings.BASE_PATH
 )
 
 app.add_middleware(LoggingMiddleware)

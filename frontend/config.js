@@ -1,4 +1,6 @@
 const CONFIG = {
+    BASE_PATH: "",
+
     API_BASE_URL: "http://localhost:8000",
 
     ENDPOINTS: {
@@ -34,7 +36,8 @@ const CONFIG = {
 
 CONFIG.getApiUrl = function (endpoint) {
     const path = this.ENDPOINTS[endpoint] || endpoint;
-    return this.API_BASE_URL + path;
+    const basePath = (this.BASE_PATH || "").replace(/\/+$/, "");
+    return this.API_BASE_URL + basePath + path;
 };
 
 CONFIG.getEnvironment = function () {
