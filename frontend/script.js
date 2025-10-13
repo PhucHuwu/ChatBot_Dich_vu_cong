@@ -5,84 +5,73 @@ document.addEventListener("DOMContentLoaded", function () {
     const sendButton = document.getElementById("send-button");
     const typingIndicator = document.getElementById("typing-indicator");
     const quickActions = document.getElementById("quick-actions");
-    
-    // Sidebar elements
+
     const sidebar = document.getElementById("sidebar");
     const sidebarToggle = document.getElementById("sidebar-toggle");
     const sidebarClose = document.getElementById("sidebar-close");
     const sidebarOverlay = document.getElementById("sidebar-overlay");
     const newChatBtn = document.getElementById("new-chat-btn");
     const conversationsList = document.getElementById("conversations-list");
-    
-    // Theme toggle
+
     const themeToggle = document.getElementById("theme-toggle");
-    
-    // Sidebar action buttons
+
     const sidebarThemeToggle = document.getElementById("sidebar-theme-toggle");
     const sidebarSupportBtn = document.getElementById("sidebar-support-btn");
-    
-    // Scroll to bottom button
+
     const scrollToBottomBtn = document.getElementById("scroll-to-bottom");
 
     let chatHistory = [];
     const MAX_HISTORY_LENGTH = CONFIG.MAX_HISTORY_LENGTH || 10;
-    
-    // Conversation management
+
     let conversations = {};
     let currentConversationId = null;
-    
-    // ========== Theme Management ==========
-    
+
     function loadTheme() {
-        const savedTheme = localStorage.getItem('chatbot_theme');
-        if (savedTheme === 'dark') {
-            document.body.classList.add('dark-mode');
+        const savedTheme = localStorage.getItem("chatbot_theme");
+        if (savedTheme === "dark") {
+            document.body.classList.add("dark-mode");
             updateThemeIcon(true);
         } else {
-            document.body.classList.remove('dark-mode');
+            document.body.classList.remove("dark-mode");
             updateThemeIcon(false);
         }
     }
-    
+
     function toggleTheme() {
-        const isDark = document.body.classList.toggle('dark-mode');
-        localStorage.setItem('chatbot_theme', isDark ? 'dark' : 'light');
+        const isDark = document.body.classList.toggle("dark-mode");
+        localStorage.setItem("chatbot_theme", isDark ? "dark" : "light");
         updateThemeIcon(isDark);
     }
-    
+
     function updateThemeIcon(isDark) {
-        // Update header theme toggle
-        const icon = themeToggle.querySelector('i');
+        const icon = themeToggle.querySelector("i");
         if (isDark) {
-            icon.classList.remove('fa-moon');
-            icon.classList.add('fa-sun');
-            themeToggle.title = 'Chuyển sang chế độ sáng';
+            icon.classList.remove("fa-moon");
+            icon.classList.add("fa-sun");
+            themeToggle.title = "Chuyển sang chế độ sáng";
         } else {
-            icon.classList.remove('fa-sun');
-            icon.classList.add('fa-moon');
-            themeToggle.title = 'Chuyển sang chế độ tối';
+            icon.classList.remove("fa-sun");
+            icon.classList.add("fa-moon");
+            themeToggle.title = "Chuyển sang chế độ tối";
         }
-        
-        // Update sidebar theme toggle
+
         if (sidebarThemeToggle) {
-            const sidebarIcon = sidebarThemeToggle.querySelector('i');
+            const sidebarIcon = sidebarThemeToggle.querySelector("i");
             if (isDark) {
-                sidebarIcon.classList.remove('fa-moon');
-                sidebarIcon.classList.add('fa-sun');
-                sidebarThemeToggle.title = 'Chuyển sang chế độ sáng';
+                sidebarIcon.classList.remove("fa-moon");
+                sidebarIcon.classList.add("fa-sun");
+                sidebarThemeToggle.title = "Chuyển sang chế độ sáng";
             } else {
-                sidebarIcon.classList.remove('fa-sun');
-                sidebarIcon.classList.add('fa-moon');
-                sidebarThemeToggle.title = 'Chuyển sang chế độ tối';
+                sidebarIcon.classList.remove("fa-sun");
+                sidebarIcon.classList.add("fa-moon");
+                sidebarThemeToggle.title = "Chuyển sang chế độ tối";
             }
         }
     }
-    
-    // Load theme on page load
+
     loadTheme();
-    
-    // Theme toggle event listener
-    themeToggle.addEventListener('click', toggleTheme);
+
+    themeToggle.addEventListener("click", toggleTheme);
 
     if (typeof marked !== "undefined") {
         marked.setOptions({
@@ -466,32 +455,34 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function appendMessageToConversation(targetConvId, sender, text) {
-        // Thêm message vào conversation target
         if (!targetConvId || !conversations[targetConvId]) {
-            console.error('Target conversation not found:', targetConvId);
+            console.error("Target conversation not found:", targetConvId);
             return;
         }
 
         const messageData = {
             sender: sender,
             message: text,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
         };
 
-        // Thêm vào conversation data
         conversations[targetConvId].messages.push(messageData);
         conversations[targetConvId].updatedAt = new Date().toISOString();
 
-        // Cập nhật title nếu là tin nhắn user đầu tiên
-        if (sender === 'user' && conversations[targetConvId].messages.filter(m => m.sender === 'user').length === 1) {
-            const title = text.substring(0, 30) + (text.length > 30 ? '...' : '');
+        if (
+            sender === "user" &&
+            conversations[targetConvId].messages.filter(
+                (m) => m.sender === "user"
+            ).length === 1
+        ) {
+            const title =
+                text.substring(0, 30) + (text.length > 30 ? "..." : "");
             conversations[targetConvId].title = title;
         }
 
-        // Nếu đang xem conversation này, hiển thị message
         if (currentConversationId === targetConvId) {
             chatHistory.push(messageData);
-            
+
             const msgDiv = document.createElement("div");
             msgDiv.classList.add("message");
 
@@ -531,7 +522,6 @@ document.addEventListener("DOMContentLoaded", function () {
             updateHistoryIndicator();
         }
 
-        // Lưu vào localStorage và update danh sách
         saveConversations();
         renderConversationsList();
     }
@@ -560,7 +550,6 @@ document.addEventListener("DOMContentLoaded", function () {
     function sendMessage(message) {
         if (!message.trim()) return;
 
-        // Lưu lại conversation ID và history tại thời điểm gửi message
         const targetConversationId = currentConversationId;
         const contextHistory = getChatHistoryForAPI();
 
@@ -585,8 +574,11 @@ document.addEventListener("DOMContentLoaded", function () {
                     setLoadingState(false);
 
                     if (data.answer) {
-                        // Thêm response vào đúng conversation đã gửi
-                        appendMessageToConversation(targetConversationId, "bot", data.answer);
+                        appendMessageToConversation(
+                            targetConversationId,
+                            "bot",
+                            data.answer
+                        );
                     } else {
                         appendMessageToConversation(
                             targetConversationId,
@@ -636,11 +628,10 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
 
-    // Sidebar action buttons event listeners
     if (sidebarThemeToggle) {
         sidebarThemeToggle.addEventListener("click", toggleTheme);
     }
-    
+
     if (sidebarSupportBtn) {
         sidebarSupportBtn.addEventListener("click", function () {
             appendMessage(
@@ -651,55 +642,61 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // ========== Conversation Management Functions ==========
-    
     function loadConversations() {
         try {
-            const saved = localStorage.getItem('chatbot_conversations');
+            const saved = localStorage.getItem("chatbot_conversations");
             if (saved) {
                 conversations = JSON.parse(saved);
             }
-            const currentId = localStorage.getItem('chatbot_current_conversation');
+            const currentId = localStorage.getItem(
+                "chatbot_current_conversation"
+            );
             if (currentId && conversations[currentId]) {
                 currentConversationId = currentId;
-                loadConversation(currentId, false); // false = don't save previous conversation
+                loadConversation(currentId, false);
             } else {
                 createNewConversation();
             }
         } catch (error) {
-            console.error('Error loading conversations:', error);
+            console.error("Error loading conversations:", error);
             createNewConversation();
         }
         renderConversationsList();
     }
-    
+
     function saveConversations() {
         try {
-            localStorage.setItem('chatbot_conversations', JSON.stringify(conversations));
+            localStorage.setItem(
+                "chatbot_conversations",
+                JSON.stringify(conversations)
+            );
             if (currentConversationId) {
-                localStorage.setItem('chatbot_current_conversation', currentConversationId);
+                localStorage.setItem(
+                    "chatbot_current_conversation",
+                    currentConversationId
+                );
             }
         } catch (error) {
-            console.error('Error saving conversations:', error);
+            console.error("Error saving conversations:", error);
         }
     }
-    
+
     function createNewConversation() {
         saveCurrentConversation();
-        
-        const id = 'conv_' + Date.now();
+
+        const id = "conv_" + Date.now();
         const now = new Date();
         conversations[id] = {
             id: id,
-            title: 'Đoạn chat mới',
+            title: "Đoạn chat mới",
             messages: [],
             createdAt: now.toISOString(),
-            updatedAt: now.toISOString()
+            updatedAt: now.toISOString(),
         };
-        
+
         currentConversationId = id;
         chatHistory = [];
-        
+
         chatBox.innerHTML = `
             <div class="welcome-message">
                 <div class="bot-message">
@@ -725,47 +722,50 @@ document.addEventListener("DOMContentLoaded", function () {
                 </div>
             </div>
         `;
-        
-        quickActions.style.display = 'flex';
+
+        quickActions.style.display = "flex";
         updateHistoryIndicator();
         saveConversations();
         renderConversationsList();
         closeSidebar();
     }
-    
+
     function saveCurrentConversation(updateTime = false) {
         if (currentConversationId && conversations[currentConversationId]) {
             conversations[currentConversationId].messages = chatHistory.slice();
-            
+
             if (updateTime) {
-                conversations[currentConversationId].updatedAt = new Date().toISOString();
+                conversations[currentConversationId].updatedAt =
+                    new Date().toISOString();
             }
-            
+
             if (chatHistory.length > 0) {
-                const firstUserMessage = chatHistory.find(msg => msg.sender === 'user');
+                const firstUserMessage = chatHistory.find(
+                    (msg) => msg.sender === "user"
+                );
                 if (firstUserMessage) {
-                    const title = firstUserMessage.message.substring(0, 30) + 
-                                 (firstUserMessage.message.length > 30 ? '...' : '');
+                    const title =
+                        firstUserMessage.message.substring(0, 30) +
+                        (firstUserMessage.message.length > 30 ? "..." : "");
                     conversations[currentConversationId].title = title;
                 }
             }
         }
     }
-    
+
     function loadConversation(id, savePrevious = true) {
-        // Only save previous conversation if switching between conversations, not on initial load
         if (savePrevious) {
             saveCurrentConversation();
         }
-        
+
         if (!conversations[id]) return;
-        
+
         currentConversationId = id;
         const conversation = conversations[id];
         chatHistory = conversation.messages.slice();
-        
-        chatBox.innerHTML = '';
-        
+
+        chatBox.innerHTML = "";
+
         if (chatHistory.length === 0) {
             chatBox.innerHTML = `
                 <div class="welcome-message">
@@ -792,23 +792,27 @@ document.addEventListener("DOMContentLoaded", function () {
                     </div>
                 </div>
             `;
-            quickActions.style.display = 'flex';
+            quickActions.style.display = "flex";
         } else {
-            chatHistory.forEach(msg => {
+            chatHistory.forEach((msg) => {
                 const msgDiv = document.createElement("div");
                 msgDiv.classList.add("message");
-                
+
                 const isUser = msg.sender === "user";
                 const messageClass = isUser ? "user-message" : "bot-message";
                 const bubbleClass = isUser ? "user-bubble" : "bot-bubble";
                 const avatarIcon = isUser ? "fas fa-user" : "fas fa-landmark";
-                
-                const formattedText = isUser ? msg.message : formatMarkdown(msg.message);
-                const msgTime = msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString("vi-VN", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                }) : getCurrentTime();
-                
+
+                const formattedText = isUser
+                    ? msg.message
+                    : formatMarkdown(msg.message);
+                const msgTime = msg.timestamp
+                    ? new Date(msg.timestamp).toLocaleTimeString("vi-VN", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                      })
+                    : getCurrentTime();
+
                 msgDiv.innerHTML = `
                     <div class="${messageClass}">
                         <div class="message-avatar">
@@ -822,34 +826,34 @@ document.addEventListener("DOMContentLoaded", function () {
                         </div>
                     </div>
                 `;
-                
+
                 chatBox.appendChild(msgDiv);
-                
+
                 if (!isUser) {
                     handleLinkClicks(msgDiv);
                 }
             });
-            quickActions.style.display = 'none';
+            quickActions.style.display = "none";
         }
-        
+
         updateHistoryIndicator();
         saveConversations();
         renderConversationsList();
         chatBox.scrollTop = chatBox.scrollHeight;
         closeSidebar();
     }
-    
+
     function deleteConversation(id, event) {
         if (event) {
             event.stopPropagation();
         }
-        
-        if (!confirm('Bạn có chắc muốn xóa đoạn chat này?')) {
+
+        if (!confirm("Bạn có chắc muốn xóa đoạn chat này?")) {
             return;
         }
-        
+
         delete conversations[id];
-        
+
         if (currentConversationId === id) {
             const conversationIds = Object.keys(conversations);
             if (conversationIds.length > 0) {
@@ -858,16 +862,19 @@ document.addEventListener("DOMContentLoaded", function () {
                 createNewConversation();
             }
         }
-        
+
         saveConversations();
         renderConversationsList();
     }
-    
+
     function renderConversationsList() {
         const conversationIds = Object.keys(conversations).sort((a, b) => {
-            return new Date(conversations[b].updatedAt) - new Date(conversations[a].updatedAt);
+            return (
+                new Date(conversations[b].updatedAt) -
+                new Date(conversations[a].updatedAt)
+            );
         });
-        
+
         if (conversationIds.length === 0) {
             conversationsList.innerHTML = `
                 <div class="empty-conversations">
@@ -877,21 +884,25 @@ document.addEventListener("DOMContentLoaded", function () {
             `;
             return;
         }
-        
-        conversationsList.innerHTML = '';
-        
-        conversationIds.forEach(id => {
+
+        conversationsList.innerHTML = "";
+
+        conversationIds.forEach((id) => {
             const conv = conversations[id];
             const isActive = id === currentConversationId;
-            
-            const lastMessage = conv.messages.length > 0 
-                ? conv.messages[conv.messages.length - 1].message.substring(0, 40) + '...'
-                : 'Chưa có tin nhắn';
-            
+
+            const lastMessage =
+                conv.messages.length > 0
+                    ? conv.messages[conv.messages.length - 1].message.substring(
+                          0,
+                          40
+                      ) + "..."
+                    : "Chưa có tin nhắn";
+
             const timeAgo = getTimeAgo(new Date(conv.updatedAt));
-            
-            const item = document.createElement('div');
-            item.className = 'conversation-item' + (isActive ? ' active' : '');
+
+            const item = document.createElement("div");
+            item.className = "conversation-item" + (isActive ? " active" : "");
             item.innerHTML = `
                 <div class="conversation-content">
                     <div class="conversation-title">${conv.title}</div>
@@ -902,104 +913,97 @@ document.addEventListener("DOMContentLoaded", function () {
                     <i class="fas fa-trash"></i>
                 </button>
             `;
-            
-            item.addEventListener('click', () => loadConversation(id));
-            
-            const deleteBtn = item.querySelector('.conversation-delete');
-            deleteBtn.addEventListener('click', (e) => deleteConversation(id, e));
-            
+
+            item.addEventListener("click", () => loadConversation(id));
+
+            const deleteBtn = item.querySelector(".conversation-delete");
+            deleteBtn.addEventListener("click", (e) =>
+                deleteConversation(id, e)
+            );
+
             conversationsList.appendChild(item);
         });
     }
-    
+
     function getTimeAgo(date) {
         const now = new Date();
         const diffMs = now - date;
         const diffMins = Math.floor(diffMs / 60000);
         const diffHours = Math.floor(diffMs / 3600000);
         const diffDays = Math.floor(diffMs / 86400000);
-        
-        if (diffMins < 1) return 'Vừa xong';
+
+        if (diffMins < 1) return "Vừa xong";
         if (diffMins < 60) return `${diffMins} phút`;
         if (diffHours < 24) return `${diffHours} giờ`;
         if (diffDays < 7) return `${diffDays} ngày`;
-        return date.toLocaleDateString('vi-VN');
+        return date.toLocaleDateString("vi-VN");
     }
-    
+
     function toggleSidebar() {
-        sidebar.classList.toggle('active');
-        sidebarOverlay.classList.toggle('active');
+        sidebar.classList.toggle("active");
+        sidebarOverlay.classList.toggle("active");
     }
-    
+
     function closeSidebar() {
-        sidebar.classList.remove('active');
-        sidebarOverlay.classList.remove('active');
+        sidebar.classList.remove("active");
+        sidebarOverlay.classList.remove("active");
     }
-    
-    // Sidebar event listeners
-    sidebarToggle.addEventListener('click', toggleSidebar);
-    sidebarClose.addEventListener('click', closeSidebar);
-    sidebarOverlay.addEventListener('click', closeSidebar);
-    newChatBtn.addEventListener('click', createNewConversation);
-    
-    // Auto-save conversation on message send
+
+    sidebarToggle.addEventListener("click", toggleSidebar);
+    sidebarClose.addEventListener("click", closeSidebar);
+    sidebarOverlay.addEventListener("click", closeSidebar);
+    newChatBtn.addEventListener("click", createNewConversation);
+
     const originalAppendMessage = appendMessage;
-    appendMessage = function(sender, text) {
+    appendMessage = function (sender, text) {
         originalAppendMessage(sender, text);
         setTimeout(smoothScrollToBottom, 100);
         if (currentConversationId) {
-            saveCurrentConversation(true); // Update time when new message is added
+            saveCurrentConversation(true);
             saveConversations();
             renderConversationsList();
         }
     };
-    
+
     function smoothScrollToBottom() {
         chatBox.scrollTo({
             top: chatBox.scrollHeight,
             behavior: "smooth",
         });
-        // Hide scroll to bottom button after scrolling
         setTimeout(() => {
             updateScrollButton();
         }, 500);
     }
-    
-    // Initialize conversations
+
     loadConversations();
 
-    // ========== Scroll to Bottom Button ==========
-    
-    // Check if user is at bottom of chat
     function isAtBottom() {
-        const threshold = 100; // pixels from bottom
-        return chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight < threshold;
+        const threshold = 100;
+        return (
+            chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight <
+            threshold
+        );
     }
-    
-    // Show/hide scroll to bottom button
+
     function updateScrollButton() {
         if (isAtBottom()) {
-            scrollToBottomBtn.style.display = 'none';
+            scrollToBottomBtn.style.display = "none";
         } else {
-            scrollToBottomBtn.style.display = 'flex';
+            scrollToBottomBtn.style.display = "flex";
         }
     }
-    
-    // Scroll to bottom smoothly
+
     function scrollToBottom() {
         chatBox.scrollTo({
             top: chatBox.scrollHeight,
-            behavior: 'smooth'
+            behavior: "smooth",
         });
     }
-    
-    // Listen to scroll events on chat box
-    chatBox.addEventListener('scroll', updateScrollButton);
-    
-    // Click event for scroll to bottom button
-    scrollToBottomBtn.addEventListener('click', scrollToBottom);
-    
-    // Initial check
+
+    chatBox.addEventListener("scroll", updateScrollButton);
+
+    scrollToBottomBtn.addEventListener("click", scrollToBottom);
+
     updateScrollButton();
 
     userInput.focus();
