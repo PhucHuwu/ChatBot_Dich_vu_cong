@@ -1,7 +1,7 @@
 const CONFIG = {
     BASE_PATH: "",
 
-    API_BASE_URL: "http://localhost:8000",
+    API_BASE_URL: "http://123.30.48.155:8000/",
 
     ENDPOINTS: {
         CHAT: "/api/chat",

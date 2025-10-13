@@ -70,7 +70,6 @@ def embedding(texts, batch_size=None):
 
 
 def get_embedding_model():
-    """Trả về model embedding đã được load"""
     return model
 
 
