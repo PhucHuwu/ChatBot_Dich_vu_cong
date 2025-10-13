@@ -12,8 +12,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY requirements-prod.txt .
 
-# Cài dependencies với tối ưu dung lượng
-RUN pip install --no-cache-dir --user -r requirements-prod.txt
+# Cài torch CPU-only trước để tránh tải CUDA version (tiết kiệm ~1GB)
+RUN pip install --no-cache-dir --user \
+    torch==2.8.0 \
+    --index-url https://download.pytorch.org/whl/cpu
+
+# Cài các dependencies còn lại (sentence-transformers sẽ dùng torch đã cài)
+RUN pip install --no-cache-dir --user \
+    -r requirements-prod.txt \
+    --extra-index-url https://download.pytorch.org/whl/cpu
 
 # Verify torch được cài đặt
 RUN python -c "import torch; print(f'Torch version: {torch.__version__}')"
