@@ -47,26 +47,40 @@
         <div class="conversations-list" id="conversations-list">
             <!-- Conversations will be dynamically loaded here -->
         </div>
+        
+        <div class="sidebar-footer">
+            <button class="sidebar-action-btn" id="sidebar-theme-toggle" title="Đổi chế độ sáng/tối">
+                <i class="fas fa-moon"></i>
+            </button>
+            <button class="sidebar-action-btn" id="sidebar-support-btn" title="Liên hệ hỗ trợ">
+                <i class="fas fa-headset"></i>
+            </button>
+        </div>
     </div>
 
     <!-- Main Chat Container -->
     <div class="chat-container">
         <div class="chat-header">
             <div class="header-content">
-                <button class="sidebar-toggle" id="sidebar-toggle">
-                    <i class="fas fa-bars"></i>
-                </button>
-                <div class="bot-avatar">
-                    <i class="fas fa-landmark"></i>
-                </div>
-                <div class="header-info">
-                    <h3>Chatbot Dịch vụ công</h3>
-                    <span class="status">
-                        <span class="status-dot"></span>
-                        Chatbot hỗ trợ 24/7
-                    </span>
+                <div class="header-left">
+                    <button class="sidebar-toggle" id="sidebar-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="bot-avatar">
+                        <i class="fas fa-landmark"></i>
+                    </div>
+                    <div class="header-info">
+                        <h3>Chatbot Dịch vụ công</h3>
+                        <span class="status">
+                            <span class="status-dot"></span>
+                            Chatbot hỗ trợ 24/7
+                        </span>
+                    </div>
                 </div>
                 <div class="header-actions">
+                    <button class="action-btn" id="theme-toggle" title="Đổi chế độ sáng/tối">
+                        <i class="fas fa-moon"></i>
+                    </button>
                     <button class="action-btn" title="Liên hệ hỗ trợ">
                         <i class="fas fa-headset"></i>
                     </button>

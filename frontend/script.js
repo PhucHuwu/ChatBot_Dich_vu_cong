@@ -13,6 +13,13 @@ document.addEventListener("DOMContentLoaded", function () {
     const sidebarOverlay = document.getElementById("sidebar-overlay");
     const newChatBtn = document.getElementById("new-chat-btn");
     const conversationsList = document.getElementById("conversations-list");
+    
+    // Theme toggle
+    const themeToggle = document.getElementById("theme-toggle");
+    
+    // Sidebar action buttons
+    const sidebarThemeToggle = document.getElementById("sidebar-theme-toggle");
+    const sidebarSupportBtn = document.getElementById("sidebar-support-btn");
 
     let chatHistory = [];
     const MAX_HISTORY_LENGTH = CONFIG.MAX_HISTORY_LENGTH || 10;
@@ -20,6 +27,59 @@ document.addEventListener("DOMContentLoaded", function () {
     // Conversation management
     let conversations = {};
     let currentConversationId = null;
+    
+    // ========== Theme Management ==========
+    
+    function loadTheme() {
+        const savedTheme = localStorage.getItem('chatbot_theme');
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark-mode');
+            updateThemeIcon(true);
+        } else {
+            document.body.classList.remove('dark-mode');
+            updateThemeIcon(false);
+        }
+    }
+    
+    function toggleTheme() {
+        const isDark = document.body.classList.toggle('dark-mode');
+        localStorage.setItem('chatbot_theme', isDark ? 'dark' : 'light');
+        updateThemeIcon(isDark);
+    }
+    
+    function updateThemeIcon(isDark) {
+        // Update header theme toggle
+        const icon = themeToggle.querySelector('i');
+        if (isDark) {
+            icon.classList.remove('fa-moon');
+            icon.classList.add('fa-sun');
+            themeToggle.title = 'Chuyển sang chế độ sáng';
+        } else {
+            icon.classList.remove('fa-sun');
+            icon.classList.add('fa-moon');
+            themeToggle.title = 'Chuyển sang chế độ tối';
+        }
+        
+        // Update sidebar theme toggle
+        if (sidebarThemeToggle) {
+            const sidebarIcon = sidebarThemeToggle.querySelector('i');
+            if (isDark) {
+                sidebarIcon.classList.remove('fa-moon');
+                sidebarIcon.classList.add('fa-sun');
+                sidebarThemeToggle.title = 'Chuyển sang chế độ sáng';
+            } else {
+                sidebarIcon.classList.remove('fa-sun');
+                sidebarIcon.classList.add('fa-moon');
+                sidebarThemeToggle.title = 'Chuyển sang chế độ tối';
+            }
+        }
+    }
+    
+    // Load theme on page load
+    loadTheme();
+    
+    // Theme toggle event listener
+    themeToggle.addEventListener('click', toggleTheme);
 
     if (typeof marked !== "undefined") {
         marked.setOptions({
@@ -572,6 +632,21 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             }
         });
+
+    // Sidebar action buttons event listeners
+    if (sidebarThemeToggle) {
+        sidebarThemeToggle.addEventListener("click", toggleTheme);
+    }
+    
+    if (sidebarSupportBtn) {
+        sidebarSupportBtn.addEventListener("click", function () {
+            appendMessage(
+                "bot",
+                `Bạn có thể liên hệ hỗ trợ qua số hotline: ${CONFIG.SUPPORT.HOTLINE} hoặc email: ${CONFIG.SUPPORT.EMAIL}`
+            );
+            closeSidebar();
+        });
+    }
 
     // ========== Conversation Management Functions ==========
     
