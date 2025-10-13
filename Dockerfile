@@ -1,5 +1,5 @@
 # ===== Stage 1: Builder - Cài đặt dependencies =====
-FROM python:3.10-slim as builder
+FROM python:3.12.3-slim as builder
 
 WORKDIR /build
 
@@ -24,7 +24,7 @@ RUN pip install --no-cache-dir --user -r requirements-prod.txt && \
     find /root/.local -name "*.pyo" -delete
 
 # ===== Stage 2: Runtime - Image chạy thực tế =====
-FROM python:3.10-slim
+FROM python:3.12.3-slim
 
 WORKDIR /app
 
