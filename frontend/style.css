@@ -1458,8 +1458,15 @@ body {
     pointer-events: none;
 }
 
-.loading #send-button {
-    animation: spin 1s linear infinite;
+.loading #send-button::before {
+    content: "■";
+    font-size: 30px;
+    position: relative;
+    top: -2px;
+}
+
+.loading #send-button i {
+    display: none;
 }
 
 @keyframes spin {

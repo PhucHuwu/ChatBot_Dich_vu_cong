@@ -601,6 +601,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     chatForm.addEventListener("submit", function (e) {
         e.preventDefault();
+        if (chatForm.classList.contains("loading")) {
+            return;
+        }
         const query = userInput.value.trim();
         sendMessage(query);
     });
@@ -1011,6 +1014,9 @@ document.addEventListener("DOMContentLoaded", function () {
     userInput.addEventListener("keypress", function (e) {
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
+            if (chatForm.classList.contains("loading")) {
+                return;
+            }
             chatForm.dispatchEvent(new Event("submit"));
         }
     });
