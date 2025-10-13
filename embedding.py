@@ -69,6 +69,11 @@ def embedding(texts, batch_size=None):
             raise
 
 
+def get_embedding_model():
+    """Trả về model embedding đã được load"""
+    return model
+
+
 def get_device_info():
     if torch.cuda.is_available():
         return {
