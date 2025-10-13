@@ -13,15 +13,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements-prod.txt .
 
 # Cài dependencies với tối ưu dung lượng
-RUN pip install --no-cache-dir --user -r requirements-prod.txt && \
-    # Xóa cache pip
-    rm -rf /root/.cache/pip && \
-    # Xóa các file không cần thiết (sử dụng -delete thay vì -exec rm để an toàn hơn)
-    find /root/.local -type d -name "tests" -prune -exec rm -rf {} \; 2>/dev/null || true && \
-    find /root/.local -type d -name "test" -prune -exec rm -rf {} \; 2>/dev/null || true && \
-    find /root/.local -type d -name "__pycache__" -prune -exec rm -rf {} \; 2>/dev/null || true && \
-    find /root/.local -name "*.pyc" -delete && \
-    find /root/.local -name "*.pyo" -delete
+RUN pip install --no-cache-dir --user -r requirements-prod.txt
+
+# Verify torch được cài đặt
+RUN python -c "import torch; print(f'Torch version: {torch.__version__}')"
+
+# Cleanup để giảm dung lượng image
+RUN rm -rf /root/.cache/pip && \
+    find /root/.local -type f -name "*.pyc" -delete && \
+    find /root/.local -type f -name "*.pyo" -delete && \
+    find /root/.local -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 
 # ===== Stage 2: Runtime - Image chạy thực tế =====
 FROM python:3.12.3-slim
