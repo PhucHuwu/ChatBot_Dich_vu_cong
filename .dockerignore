@@ -1,3 +1,4 @@
+# Python cache và compiled files
 __pycache__/
 *.py[cod]
 *$py.class
@@ -8,6 +9,7 @@ dist/
 build/
 *.egg
 
+# Environment files
 .env
 .env.local
 .env.*.local
@@ -15,32 +17,62 @@ venv/
 env/
 ENV/
 
+# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 
+# OS files
 .DS_Store
 Thumbs.db
 
+# Logs
 *.log
 logs/
 
+# Testing
 .pytest_cache/
 .mypy_cache/
+tests/
+.coverage
+htmlcov/
 
+# Git
 .git/
 .gitignore
 .github/
 
+# Documentation (không cần trong image)
 *.md
+!README.md
 docs/
 
-scripts/
+# Scripts development (chỉ giữ entrypoint.sh)
+scripts/*.ps1
+scripts/deploy.sh
+scripts/health_check.sh
+scripts/rebuild_index.ps1
+scripts/rebuild_index.sh
 
+# Development requirements
 requirements-dev.txt
-tests/
-.coverage
+docker-compose.dev.yml
 
+# Crawl data
 craw_data/
+
+# SSH keys
+*.pem
+*.key
+
+# Embeddings (sẽ mount volume)
+embeddings/*.bin
+embeddings/*.pkl
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+.cache/

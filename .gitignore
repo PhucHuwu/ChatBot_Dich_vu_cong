@@ -6,6 +6,7 @@ craw_data/
 .env.local
 .env.*.local
 *.key
+ssh-key*
 
 __pycache__/
 *.py[cod]

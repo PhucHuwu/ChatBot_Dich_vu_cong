@@ -14,13 +14,13 @@ services:
       - GROQ_API_KEY=${GROQ_API_KEY}
       - HOST=0.0.0.0
       - PORT=8000
-      - WORKERS=4
+      - WORKERS=2
       - LOG_LEVEL=INFO
       - ENABLE_CACHE=True
-      - CACHE_MAX_SIZE=1000
+      - CACHE_MAX_SIZE=500
       - CACHE_TTL=3600
       - SIMILARITY_THRESHOLD=1.2
-      - TOP_K_DEFAULT=10
+      - TOP_K_DEFAULT=8
       - LLM_TIMEOUT=60
     env_file:
       - .env
@@ -28,6 +28,11 @@ services:
       - ./embeddings:/app/embeddings
       - ./data:/app/data:ro
     restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -39,11 +44,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2.0'
-          memory: 4G
-        reservations:
           cpus: '1.0'
-          memory: 2G
+          memory: 1536M
+        reservations:
+          cpus: '0.5'
+          memory: 768M
 
 networks:
   chatbot-network:
