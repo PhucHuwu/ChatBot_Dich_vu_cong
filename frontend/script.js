@@ -20,11 +20,53 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const scrollToBottomBtn = document.getElementById("scroll-to-bottom");
 
+    const confirmModalOverlay = document.getElementById("confirm-modal-overlay");
+    const confirmModalTitle = document.getElementById("confirm-modal-title");
+    const confirmModalMessage = document.getElementById("confirm-modal-message");
+    const confirmBtnCancel = document.getElementById("confirm-btn-cancel");
+    const confirmBtnConfirm = document.getElementById("confirm-btn-confirm");
+
     let chatHistory = [];
     const MAX_HISTORY_LENGTH = CONFIG.MAX_HISTORY_LENGTH || 10;
 
     let conversations = {};
     let currentConversationId = null;
+
+    function showConfirmModal(message, title = "Xác nhận") {
+        return new Promise((resolve) => {
+            confirmModalTitle.textContent = title;
+            confirmModalMessage.textContent = message;
+            confirmModalOverlay.classList.add("active");
+
+            const handleConfirm = () => {
+                confirmModalOverlay.classList.remove("active");
+                cleanup();
+                resolve(true);
+            };
+
+            const handleCancel = () => {
+                confirmModalOverlay.classList.remove("active");
+                cleanup();
+                resolve(false);
+            };
+
+            const handleOverlayClick = (e) => {
+                if (e.target === confirmModalOverlay) {
+                    handleCancel();
+                }
+            };
+
+            const cleanup = () => {
+                confirmBtnConfirm.removeEventListener("click", handleConfirm);
+                confirmBtnCancel.removeEventListener("click", handleCancel);
+                confirmModalOverlay.removeEventListener("click", handleOverlayClick);
+            };
+
+            confirmBtnConfirm.addEventListener("click", handleConfirm);
+            confirmBtnCancel.addEventListener("click", handleCancel);
+            confirmModalOverlay.addEventListener("click", handleOverlayClick);
+        });
+    }
 
     function loadTheme() {
         const savedTheme = localStorage.getItem("chatbot_theme");
@@ -392,7 +434,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function handleLinkClicks(messageElement) {
         const links = messageElement.querySelectorAll(".chat-link");
         links.forEach((link) => {
-            link.addEventListener("click", function (e) {
+            link.addEventListener("click", async function (e) {
                 this.style.transform = "scale(0.95)";
                 setTimeout(() => {
                     this.style.transform = "scale(1)";
@@ -404,10 +446,13 @@ document.addEventListener("DOMContentLoaded", function () {
                     this.classList.contains("phone-link") &&
                     /Mobi|Android/i.test(navigator.userAgent)
                 ) {
-                    if (
-                        !confirm("Bạn có muốn gọi điện thoại đến số này không?")
-                    ) {
-                        e.preventDefault();
+                    e.preventDefault();
+                    const confirmed = await showConfirmModal(
+                        "Bạn có muốn gọi điện thoại đến số này không?",
+                        "Xác nhận cuộc gọi"
+                    );
+                    if (confirmed) {
+                        window.location.href = this.href;
                     }
                 }
             });
@@ -848,19 +893,30 @@ document.addEventListener("DOMContentLoaded", function () {
         closeSidebar();
     }
 
-    function deleteConversation(id, event) {
+    async function deleteConversation(id, event) {
         if (event) {
             event.stopPropagation();
         }
 
-        if (!confirm("Bạn có chắc muốn xóa đoạn chat này?")) {
+        const confirmed = await showConfirmModal(
+            "Bạn có chắc muốn xóa đoạn chat này?",
+            "Xác nhận xóa"
+        );
+
+        if (!confirmed) {
             return;
         }
 
         delete conversations[id];
 
         if (currentConversationId === id) {
-            const conversationIds = Object.keys(conversations);
+            const conversationIds = Object.keys(conversations).sort((a, b) => {
+                return (
+                    new Date(conversations[b].updatedAt) -
+                    new Date(conversations[a].updatedAt)
+                );
+            });
+            
             if (conversationIds.length > 0) {
                 loadConversation(conversationIds[0]);
             } else {
