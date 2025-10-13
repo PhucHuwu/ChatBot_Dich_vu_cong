@@ -989,7 +989,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function updateScrollButton() {
-        if (isAtBottom()) {
+        if (chatHistory.length === 0 || isAtBottom()) {
             scrollToBottomBtn.style.display = "none";
         } else {
             scrollToBottomBtn.style.display = "flex";
