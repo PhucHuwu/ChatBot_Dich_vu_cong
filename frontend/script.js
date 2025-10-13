@@ -730,6 +730,7 @@ document.addEventListener("DOMContentLoaded", function () {
         updateHistoryIndicator();
         saveConversations();
         renderConversationsList();
+        updateScrollButton();
         closeSidebar();
     }
 
@@ -843,6 +844,7 @@ document.addEventListener("DOMContentLoaded", function () {
         saveConversations();
         renderConversationsList();
         chatBox.scrollTop = chatBox.scrollHeight;
+        updateScrollButton();
         closeSidebar();
     }
 
