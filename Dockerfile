@@ -23,7 +23,7 @@ RUN pip install --no-cache-dir --user -r requirements-prod.txt && \
     find /root/.local -name "*.pyc" -delete 2>/dev/null || true && \
     find /root/.local -name "*.pyo" -delete 2>/dev/null || true && \
     # Xóa các file .so.debug nếu có
-    find /root/.local -name "*.so.*" -type f -delete 2>/dev/null || true
+    find /root/.local -name "*.so.debug" -type f -delete 2>/dev/null || true
 
 # ===== Stage 2: Runtime - Image chạy thực tế =====
 FROM python:3.10-slim
