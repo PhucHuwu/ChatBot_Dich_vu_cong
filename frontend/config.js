@@ -1,7 +1,7 @@
 const CONFIG = {
     BASE_PATH: "",
 
-    API_BASE_URL: "http://123.30.48.155:8000",
+    API_BASE_URL: "https://gazeless-jeanett-bathetic.ngrok-free.dev",
 
     ENDPOINTS: {
         CHAT: "/api/chat",
