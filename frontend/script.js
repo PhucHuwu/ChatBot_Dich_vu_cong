@@ -5,9 +5,21 @@ document.addEventListener("DOMContentLoaded", function () {
     const sendButton = document.getElementById("send-button");
     const typingIndicator = document.getElementById("typing-indicator");
     const quickActions = document.getElementById("quick-actions");
+    
+    // Sidebar elements
+    const sidebar = document.getElementById("sidebar");
+    const sidebarToggle = document.getElementById("sidebar-toggle");
+    const sidebarClose = document.getElementById("sidebar-close");
+    const sidebarOverlay = document.getElementById("sidebar-overlay");
+    const newChatBtn = document.getElementById("new-chat-btn");
+    const conversationsList = document.getElementById("conversations-list");
 
     let chatHistory = [];
     const MAX_HISTORY_LENGTH = CONFIG.MAX_HISTORY_LENGTH || 10;
+    
+    // Conversation management
+    let conversations = {};
+    let currentConversationId = null;
 
     if (typeof marked !== "undefined") {
         marked.setOptions({
@@ -390,6 +402,77 @@ document.addEventListener("DOMContentLoaded", function () {
         addToHistory(sender, text);
     }
 
+    function appendMessageToConversation(targetConvId, sender, text) {
+        // Thêm message vào conversation target
+        if (!targetConvId || !conversations[targetConvId]) {
+            console.error('Target conversation not found:', targetConvId);
+            return;
+        }
+
+        const messageData = {
+            sender: sender,
+            message: text,
+            timestamp: new Date().toISOString()
+        };
+
+        // Thêm vào conversation data
+        conversations[targetConvId].messages.push(messageData);
+        conversations[targetConvId].updatedAt = new Date().toISOString();
+
+        // Cập nhật title nếu là tin nhắn user đầu tiên
+        if (sender === 'user' && conversations[targetConvId].messages.filter(m => m.sender === 'user').length === 1) {
+            const title = text.substring(0, 30) + (text.length > 30 ? '...' : '');
+            conversations[targetConvId].title = title;
+        }
+
+        // Nếu đang xem conversation này, hiển thị message
+        if (currentConversationId === targetConvId) {
+            chatHistory.push(messageData);
+            
+            const msgDiv = document.createElement("div");
+            msgDiv.classList.add("message");
+
+            const isUser = sender === "user";
+            const messageClass = isUser ? "user-message" : "bot-message";
+            const bubbleClass = isUser ? "user-bubble" : "bot-bubble";
+            const avatarIcon = isUser ? "fas fa-user" : "fas fa-landmark";
+
+            const formattedText = isUser ? text : formatMarkdown(text);
+
+            msgDiv.innerHTML = `
+                <div class="${messageClass}">
+                    <div class="message-avatar">
+                        <i class="${avatarIcon}"></i>
+                    </div>
+                    <div class="message-content">
+                        <div class="message-bubble ${bubbleClass}">
+                            ${formattedText}
+                        </div>
+                        <div class="message-time">${getCurrentTime()}</div>
+                    </div>
+                </div>
+            `;
+
+            chatBox.appendChild(msgDiv);
+
+            if (!isUser) {
+                handleLinkClicks(msgDiv);
+            }
+
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            if (sender === "user") {
+                quickActions.style.display = "none";
+            }
+
+            updateHistoryIndicator();
+        }
+
+        // Lưu vào localStorage và update danh sách
+        saveConversations();
+        renderConversationsList();
+    }
+
     function showTypingIndicator() {
         typingIndicator.style.display = "flex";
         chatBox.scrollTop = chatBox.scrollHeight;
@@ -414,7 +497,11 @@ document.addEventListener("DOMContentLoaded", function () {
     function sendMessage(message) {
         if (!message.trim()) return;
 
-        appendMessage("user", message);
+        // Lưu lại conversation ID và history tại thời điểm gửi message
+        const targetConversationId = currentConversationId;
+        const contextHistory = getChatHistoryForAPI();
+
+        appendMessageToConversation(targetConversationId, "user", message);
         userInput.value = "";
 
         setLoadingState(true);
@@ -426,7 +513,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     query: message,
-                    chat_history: getChatHistoryForAPI(),
+                    chat_history: contextHistory,
                 }),
             })
                 .then((res) => res.json())
@@ -435,9 +522,11 @@ document.addEventListener("DOMContentLoaded", function () {
                     setLoadingState(false);
 
                     if (data.answer) {
-                        appendMessage("bot", data.answer);
+                        // Thêm response vào đúng conversation đã gửi
+                        appendMessageToConversation(targetConversationId, "bot", data.answer);
                     } else {
-                        appendMessage(
+                        appendMessageToConversation(
+                            targetConversationId,
                             "bot",
                             "Xin lỗi, tôi không thể trả lời câu hỏi này lúc này. Vui lòng thử lại sau hoặc liên hệ với bộ phận hỗ trợ kỹ thuật."
                         );
@@ -446,7 +535,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 .catch(() => {
                     hideTypingIndicator();
                     setLoadingState(false);
-                    appendMessage(
+                    appendMessageToConversation(
+                        targetConversationId,
                         "bot",
                         "Không thể kết nối tới máy chủ. Vui lòng kiểm tra kết nối internet và thử lại."
                     );
@@ -474,10 +564,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const btn = e.target.closest(".action-btn");
             if (btn) {
                 const icon = btn.querySelector("i");
-                if (icon.classList.contains("fa-refresh")) {
-                    clearChatHistory();
-                    location.reload();
-                } else if (icon.classList.contains("fa-headset")) {
+                if (icon.classList.contains("fa-headset")) {
                     appendMessage(
                         "bot",
                         `Bạn có thể liên hệ hỗ trợ qua số hotline: ${CONFIG.SUPPORT.HOTLINE} hoặc email: ${CONFIG.SUPPORT.EMAIL}`
@@ -485,6 +572,316 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             }
         });
+
+    // ========== Conversation Management Functions ==========
+    
+    function loadConversations() {
+        try {
+            const saved = localStorage.getItem('chatbot_conversations');
+            if (saved) {
+                conversations = JSON.parse(saved);
+            }
+            const currentId = localStorage.getItem('chatbot_current_conversation');
+            if (currentId && conversations[currentId]) {
+                currentConversationId = currentId;
+                loadConversation(currentId);
+            } else {
+                createNewConversation();
+            }
+        } catch (error) {
+            console.error('Error loading conversations:', error);
+            createNewConversation();
+        }
+        renderConversationsList();
+    }
+    
+    function saveConversations() {
+        try {
+            localStorage.setItem('chatbot_conversations', JSON.stringify(conversations));
+            if (currentConversationId) {
+                localStorage.setItem('chatbot_current_conversation', currentConversationId);
+            }
+        } catch (error) {
+            console.error('Error saving conversations:', error);
+        }
+    }
+    
+    function createNewConversation() {
+        saveCurrentConversation();
+        
+        const id = 'conv_' + Date.now();
+        const now = new Date();
+        conversations[id] = {
+            id: id,
+            title: 'Đoạn chat mới',
+            messages: [],
+            createdAt: now.toISOString(),
+            updatedAt: now.toISOString()
+        };
+        
+        currentConversationId = id;
+        chatHistory = [];
+        
+        chatBox.innerHTML = `
+            <div class="welcome-message">
+                <div class="bot-message">
+                    <div class="message-avatar">
+                        <i class="fas fa-landmark"></i>
+                    </div>
+                    <div class="message-content">
+                        <div class="message-bubble bot-bubble">
+                            <div class="welcome-text">
+                                <h4>🇻🇳 Xin chào! Chào mừng đến với Chatbot Dịch vụ công</h4>
+                                <p>Tôi là chatbot hỗ trợ, có thể giúp bạn:</p>
+                                <ul>
+                                    <li>Hướng dẫn thủ tục hành chính</li>
+                                    <li>Hướng dẫn đăng ký tài khoản công dân/doanh nghiệp</li>
+                                    <li>Hướng dẫn thanh toán điện nước, giáo dục</li>
+                                    <li>Giải đáp thắc mắc về dịch vụ công</li>
+                                </ul>
+                                <p>Bạn cần hỗ trợ gì về dịch vụ công?</p>
+                            </div>
+                        </div>
+                        <span class="message-time">Vừa xong</span>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        quickActions.style.display = 'flex';
+        updateHistoryIndicator();
+        saveConversations();
+        renderConversationsList();
+        closeSidebar();
+    }
+    
+    function saveCurrentConversation(updateTime = false) {
+        if (currentConversationId && conversations[currentConversationId]) {
+            conversations[currentConversationId].messages = chatHistory.slice();
+            
+            if (updateTime) {
+                conversations[currentConversationId].updatedAt = new Date().toISOString();
+            }
+            
+            if (chatHistory.length > 0) {
+                const firstUserMessage = chatHistory.find(msg => msg.sender === 'user');
+                if (firstUserMessage) {
+                    const title = firstUserMessage.message.substring(0, 30) + 
+                                 (firstUserMessage.message.length > 30 ? '...' : '');
+                    conversations[currentConversationId].title = title;
+                }
+            }
+        }
+    }
+    
+    function loadConversation(id) {
+        saveCurrentConversation();
+        
+        if (!conversations[id]) return;
+        
+        currentConversationId = id;
+        const conversation = conversations[id];
+        chatHistory = conversation.messages.slice();
+        
+        chatBox.innerHTML = '';
+        
+        if (chatHistory.length === 0) {
+            chatBox.innerHTML = `
+                <div class="welcome-message">
+                    <div class="bot-message">
+                        <div class="message-avatar">
+                            <i class="fas fa-landmark"></i>
+                        </div>
+                        <div class="message-content">
+                            <div class="message-bubble bot-bubble">
+                                <div class="welcome-text">
+                                    <h4>🇻🇳 Xin chào! Chào mừng đến với Chatbot Dịch vụ công</h4>
+                                    <p>Tôi là chatbot hỗ trợ, có thể giúp bạn:</p>
+                                    <ul>
+                                        <li>Hướng dẫn thủ tục hành chính</li>
+                                        <li>Hướng dẫn đăng ký tài khoản công dân/doanh nghiệp</li>
+                                        <li>Hướng dẫn thanh toán điện nước, giáo dục</li>
+                                        <li>Giải đáp thắc mắc về dịch vụ công</li>
+                                    </ul>
+                                    <p>Bạn cần hỗ trợ gì về dịch vụ công?</p>
+                                </div>
+                            </div>
+                            <span class="message-time">Vừa xong</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            quickActions.style.display = 'flex';
+        } else {
+            chatHistory.forEach(msg => {
+                const msgDiv = document.createElement("div");
+                msgDiv.classList.add("message");
+                
+                const isUser = msg.sender === "user";
+                const messageClass = isUser ? "user-message" : "bot-message";
+                const bubbleClass = isUser ? "user-bubble" : "bot-bubble";
+                const avatarIcon = isUser ? "fas fa-user" : "fas fa-landmark";
+                
+                const formattedText = isUser ? msg.message : formatMarkdown(msg.message);
+                const msgTime = msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString("vi-VN", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                }) : getCurrentTime();
+                
+                msgDiv.innerHTML = `
+                    <div class="${messageClass}">
+                        <div class="message-avatar">
+                            <i class="${avatarIcon}"></i>
+                        </div>
+                        <div class="message-content">
+                            <div class="message-bubble ${bubbleClass}">
+                                ${formattedText}
+                            </div>
+                            <div class="message-time">${msgTime}</div>
+                        </div>
+                    </div>
+                `;
+                
+                chatBox.appendChild(msgDiv);
+                
+                if (!isUser) {
+                    handleLinkClicks(msgDiv);
+                }
+            });
+            quickActions.style.display = 'none';
+        }
+        
+        updateHistoryIndicator();
+        saveConversations();
+        renderConversationsList();
+        chatBox.scrollTop = chatBox.scrollHeight;
+        closeSidebar();
+    }
+    
+    function deleteConversation(id, event) {
+        if (event) {
+            event.stopPropagation();
+        }
+        
+        if (!confirm('Bạn có chắc muốn xóa đoạn chat này?')) {
+            return;
+        }
+        
+        delete conversations[id];
+        
+        if (currentConversationId === id) {
+            const conversationIds = Object.keys(conversations);
+            if (conversationIds.length > 0) {
+                loadConversation(conversationIds[0]);
+            } else {
+                createNewConversation();
+            }
+        }
+        
+        saveConversations();
+        renderConversationsList();
+    }
+    
+    function renderConversationsList() {
+        const conversationIds = Object.keys(conversations).sort((a, b) => {
+            return new Date(conversations[b].updatedAt) - new Date(conversations[a].updatedAt);
+        });
+        
+        if (conversationIds.length === 0) {
+            conversationsList.innerHTML = `
+                <div class="empty-conversations">
+                    <i class="fas fa-comments"></i>
+                    <p>Chưa có đoạn chat nào.<br>Nhấn "Đoạn chat mới" để bắt đầu!</p>
+                </div>
+            `;
+            return;
+        }
+        
+        conversationsList.innerHTML = '';
+        
+        conversationIds.forEach(id => {
+            const conv = conversations[id];
+            const isActive = id === currentConversationId;
+            
+            const lastMessage = conv.messages.length > 0 
+                ? conv.messages[conv.messages.length - 1].message.substring(0, 40) + '...'
+                : 'Chưa có tin nhắn';
+            
+            const timeAgo = getTimeAgo(new Date(conv.updatedAt));
+            
+            const item = document.createElement('div');
+            item.className = 'conversation-item' + (isActive ? ' active' : '');
+            item.innerHTML = `
+                <div class="conversation-content">
+                    <div class="conversation-title">${conv.title}</div>
+                    <div class="conversation-preview">${lastMessage}</div>
+                </div>
+                <div class="conversation-time">${timeAgo}</div>
+                <button class="conversation-delete" title="Xóa đoạn chat">
+                    <i class="fas fa-trash"></i>
+                </button>
+            `;
+            
+            item.addEventListener('click', () => loadConversation(id));
+            
+            const deleteBtn = item.querySelector('.conversation-delete');
+            deleteBtn.addEventListener('click', (e) => deleteConversation(id, e));
+            
+            conversationsList.appendChild(item);
+        });
+    }
+    
+    function getTimeAgo(date) {
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
+        
+        if (diffMins < 1) return 'Vừa xong';
+        if (diffMins < 60) return `${diffMins} phút`;
+        if (diffHours < 24) return `${diffHours} giờ`;
+        if (diffDays < 7) return `${diffDays} ngày`;
+        return date.toLocaleDateString('vi-VN');
+    }
+    
+    function toggleSidebar() {
+        sidebar.classList.toggle('active');
+        sidebarOverlay.classList.toggle('active');
+    }
+    
+    function closeSidebar() {
+        sidebar.classList.remove('active');
+        sidebarOverlay.classList.remove('active');
+    }
+    
+    // Sidebar event listeners
+    sidebarToggle.addEventListener('click', toggleSidebar);
+    sidebarClose.addEventListener('click', closeSidebar);
+    sidebarOverlay.addEventListener('click', closeSidebar);
+    newChatBtn.addEventListener('click', createNewConversation);
+    
+    // Auto-save conversation on message send
+    const originalAppendMessage = appendMessage;
+    appendMessage = function(sender, text) {
+        originalAppendMessage(sender, text);
+        setTimeout(smoothScrollToBottom, 100);
+        if (currentConversationId) {
+            saveCurrentConversation(true); // Update time when new message is added
+            saveConversations();
+            renderConversationsList();
+        }
+    };
+    
+    function smoothScrollToBottom() {
+        chatBox.scrollTo({
+            top: chatBox.scrollHeight,
+            behavior: "smooth",
+        });
+    }
+    
+    // Initialize conversations
+    loadConversations();
 
     userInput.focus();
 
@@ -508,17 +905,4 @@ document.addEventListener("DOMContentLoaded", function () {
                 "Tính năng đính kèm file sẽ được hỗ trợ trong phiên bản tiếp theo."
             );
         });
-
-    function smoothScrollToBottom() {
-        chatBox.scrollTo({
-            top: chatBox.scrollHeight,
-            behavior: "smooth",
-        });
-    }
-
-    const originalAppendMessage = appendMessage;
-    appendMessage = function (sender, text) {
-        originalAppendMessage(sender, text);
-        setTimeout(smoothScrollToBottom, 100);
-    };
 });

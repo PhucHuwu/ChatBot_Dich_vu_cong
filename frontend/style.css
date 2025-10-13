@@ -9,6 +9,289 @@ body {
     background: linear-gradient(135deg, #ce7a58 0%, #b86547 100%);
     height: 100vh;
     overflow: hidden;
+    display: flex;
+}
+
+/* Sidebar Styles */
+.sidebar {
+    width: 280px;
+    height: 100vh;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    border-right: 1px solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease;
+}
+
+.sidebar-header {
+    padding: 20px 30px;
+    min-height: 91px;
+    background: linear-gradient(135deg, #ce7a58 0%, #b86547 100%);
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    box-shadow: -3px -3px 8px rgba(255, 255, 255, 0.4),
+        3px 3px 12px rgba(206, 122, 88, 0.4),
+        inset -2px -2px 4px rgba(0, 0, 0, 0.15),
+        inset 3px 3px 6px rgba(255, 255, 255, 0.3);
+    z-index: 10;
+}
+
+.sidebar-header::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.sidebar-header h3 {
+    font-size: 16px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+    z-index: 1;
+}
+
+.sidebar-close {
+    display: none;
+    width: 32px;
+    height: 32px;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 1;
+}
+
+.sidebar-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+}
+
+.new-chat-btn {
+    margin: 20px;
+    padding: 14px 20px;
+    background: linear-gradient(135deg, #ce7a58 0%, #b86547 100%);
+    color: white;
+    border: none;
+    border-radius: 30px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+    box-shadow: -3px -3px 8px rgba(255, 255, 255, 0.4),
+        3px 3px 12px rgba(206, 122, 88, 0.4),
+        inset -2px -2px 4px rgba(0, 0, 0, 0.15),
+        inset 3px 3px 6px rgba(255, 255, 255, 0.3);
+}
+
+.new-chat-btn:hover {
+    transform: scale(1.05);
+    box-shadow: -3px -3px 8px rgba(255, 255, 255, 0.4),
+        3px 3px 12px rgba(206, 122, 88, 0.4),
+        inset -2px -2px 4px rgba(0, 0, 0, 0.15),
+        inset 3px 3px 6px rgba(255, 255, 255, 0.3);
+}
+
+.new-chat-btn:active {
+    transform: translateY(0);
+}
+
+.conversations-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 10px 20px;
+}
+
+.conversations-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.conversations-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.conversations-list::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 30px;
+}
+
+.conversation-item {
+    padding: 12px 15px;
+    margin-bottom: 8px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    box-shadow: -3px -3px 8px rgba(255, 255, 255, 0.6),
+        3px 3px 12px rgba(0, 0, 0, 0.1), inset -1px -1px 3px rgba(0, 0, 0, 0.05),
+        inset 2px 2px 5px rgba(255, 255, 255, 0.5);
+}
+
+.conversation-item:hover {
+    background: #fef8f5;
+    border-color: #ce7a58;
+    transform: translateX(4px);
+    box-shadow: -3px -3px 8px rgba(255, 255, 255, 0.6),
+        3px 3px 12px rgba(0, 0, 0, 0.1), inset -1px -1px 3px rgba(0, 0, 0, 0.05),
+        inset 2px 2px 5px rgba(255, 255, 255, 0.5);
+}
+
+.conversation-item.active {
+    background: linear-gradient(135deg, #ce7a58 0%, #b86547 100%);
+    color: white;
+    border-color: #b86547;
+    box-shadow: -3px -3px 8px rgba(255, 255, 255, 0.6),
+        3px 3px 12px rgba(0, 0, 0, 0.1), inset -1px -1px 3px rgba(0, 0, 0, 0.05),
+        inset 2px 2px 5px rgba(255, 255, 255, 0.5);
+}
+
+.conversation-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.conversation-title {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.conversation-preview {
+    font-size: 12px;
+    opacity: 0.7;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.conversation-time {
+    font-size: 11px;
+    opacity: 0.6;
+    white-space: nowrap;
+}
+
+.conversation-delete {
+    width: 28px;
+    height: 28px;
+    background: rgba(239, 68, 68, 0.1);
+    border: none;
+    border-radius: 50%;
+    color: #ef4444;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+    opacity: 0;
+}
+
+.conversation-item:hover .conversation-delete {
+    opacity: 1;
+}
+
+.conversation-delete:hover {
+    background: #ef4444;
+    color: white;
+    transform: scale(1.1);
+}
+
+.conversation-item.active .conversation-delete {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.conversation-item.active .conversation-delete:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.sidebar-toggle {
+    display: none;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    margin-right: 15px;
+    transition: all 0.3s ease;
+}
+
+.sidebar-toggle:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+}
+
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.active {
+    display: block;
+    opacity: 1;
+}
+
+.empty-conversations {
+    text-align: center;
+    padding: 40px 20px;
+    color: #9ca3af;
+}
+
+.empty-conversations i {
+    font-size: 48px;
+    margin-bottom: 15px;
+    opacity: 0.3;
+}
+
+.empty-conversations p {
+    font-size: 14px;
+    line-height: 1.6;
 }
 
 .chat-container {
@@ -18,6 +301,8 @@ body {
     display: flex;
     flex-direction: column;
     position: relative;
+    margin-left: 280px;
+    transition: margin-left 0.3s ease;
     box-shadow: inset -2px -2px 8px rgba(0, 0, 0, 0.1),
         inset 4px 4px 12px rgba(255, 255, 255, 0.6);
 }
@@ -26,10 +311,12 @@ body {
     background: linear-gradient(135deg, #ce7a58 0%, #b86547 100%);
     color: white;
     padding: 20px 30px;
+    min-height: 91px;
     position: relative;
-    box-shadow: 0 2px 20px rgba(206, 122, 88, 0.2),
-        inset -2px -2px 6px rgba(0, 0, 0, 0.15),
-        inset 3px 3px 10px rgba(255, 255, 255, 0.3);
+    box-shadow: -3px -3px 8px rgba(255, 255, 255, 0.4),
+        3px 3px 12px rgba(206, 122, 88, 0.4),
+        inset -2px -2px 4px rgba(0, 0, 0, 0.15),
+        inset 3px 3px 6px rgba(255, 255, 255, 0.3);
     z-index: 10;
 }
 
@@ -1014,8 +1301,34 @@ body {
 }
 
 @media (max-width: 768px) {
+    .chat-container {
+        margin-left: 0;
+    }
+
+    .sidebar {
+        transform: translateX(-100%);
+    }
+
+    .sidebar.active {
+        transform: translateX(0);
+    }
+
+    .sidebar-toggle {
+        display: flex;
+    }
+
+    .sidebar-close {
+        display: flex;
+    }
+
+    .sidebar-header {
+        padding: 15px 20px;
+        min-height: 72px;
+    }
+
     .chat-header {
         padding: 15px 20px;
+        min-height: 72px;
     }
 
     .header-content {
