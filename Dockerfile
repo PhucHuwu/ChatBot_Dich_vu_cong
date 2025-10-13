@@ -83,15 +83,5 @@ HEALTHCHECK --interval=45s --timeout=10s --start-period=90s --retries=3 \
 
 ENTRYPOINT ["/entrypoint.sh"]
 
-# Giảm workers mặc định để tiết kiệm RAM
-CMD ["gunicorn", "app:app", \
-     "--worker-class", "uvicorn.workers.UvicornWorker", \
-     "--bind", "0.0.0.0:8000", \
-     "--workers", "2", \
-     "--timeout", "180", \
-     "--keep-alive", "5", \
-     "--max-requests", "1000", \
-     "--max-requests-jitter", "100", \
-     "--access-logfile", "-", \
-     "--error-logfile", "-", \
-     "--log-level", "info"]
+# CMD để trống vì entrypoint.sh đã handle gunicorn command
+CMD []
