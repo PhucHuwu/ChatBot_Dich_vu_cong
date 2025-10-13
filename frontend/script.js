@@ -584,7 +584,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const currentId = localStorage.getItem('chatbot_current_conversation');
             if (currentId && conversations[currentId]) {
                 currentConversationId = currentId;
-                loadConversation(currentId);
+                loadConversation(currentId, false); // false = don't save previous conversation
             } else {
                 createNewConversation();
             }
@@ -674,8 +674,11 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
     
-    function loadConversation(id) {
-        saveCurrentConversation();
+    function loadConversation(id, savePrevious = true) {
+        // Only save previous conversation if switching between conversations, not on initial load
+        if (savePrevious) {
+            saveCurrentConversation();
+        }
         
         if (!conversations[id]) return;
         
