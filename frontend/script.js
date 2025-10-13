@@ -20,6 +20,9 @@ document.addEventListener("DOMContentLoaded", function () {
     // Sidebar action buttons
     const sidebarThemeToggle = document.getElementById("sidebar-theme-toggle");
     const sidebarSupportBtn = document.getElementById("sidebar-support-btn");
+    
+    // Scroll to bottom button
+    const scrollToBottomBtn = document.getElementById("scroll-to-bottom");
 
     let chatHistory = [];
     const MAX_HISTORY_LENGTH = CONFIG.MAX_HISTORY_LENGTH || 10;
@@ -956,10 +959,48 @@ document.addEventListener("DOMContentLoaded", function () {
             top: chatBox.scrollHeight,
             behavior: "smooth",
         });
+        // Hide scroll to bottom button after scrolling
+        setTimeout(() => {
+            updateScrollButton();
+        }, 500);
     }
     
     // Initialize conversations
     loadConversations();
+
+    // ========== Scroll to Bottom Button ==========
+    
+    // Check if user is at bottom of chat
+    function isAtBottom() {
+        const threshold = 100; // pixels from bottom
+        return chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight < threshold;
+    }
+    
+    // Show/hide scroll to bottom button
+    function updateScrollButton() {
+        if (isAtBottom()) {
+            scrollToBottomBtn.style.display = 'none';
+        } else {
+            scrollToBottomBtn.style.display = 'flex';
+        }
+    }
+    
+    // Scroll to bottom smoothly
+    function scrollToBottom() {
+        chatBox.scrollTo({
+            top: chatBox.scrollHeight,
+            behavior: 'smooth'
+        });
+    }
+    
+    // Listen to scroll events on chat box
+    chatBox.addEventListener('scroll', updateScrollButton);
+    
+    // Click event for scroll to bottom button
+    scrollToBottomBtn.addEventListener('click', scrollToBottom);
+    
+    // Initial check
+    updateScrollButton();
 
     userInput.focus();
 
