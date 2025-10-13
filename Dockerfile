@@ -16,14 +16,12 @@ COPY requirements-prod.txt .
 RUN pip install --no-cache-dir --user -r requirements-prod.txt && \
     # Xóa cache pip
     rm -rf /root/.cache/pip && \
-    # Xóa các file test và docs không cần thiết từ packages
-    find /root/.local -type d -name "tests" -exec rm -rf {} + 2>/dev/null || true && \
-    find /root/.local -type d -name "test" -exec rm -rf {} + 2>/dev/null || true && \
-    find /root/.local -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true && \
-    find /root/.local -name "*.pyc" -delete 2>/dev/null || true && \
-    find /root/.local -name "*.pyo" -delete 2>/dev/null || true && \
-    # Xóa các file .so.debug nếu có
-    find /root/.local -name "*.so.debug" -type f -delete 2>/dev/null || true
+    # Xóa các file không cần thiết (sử dụng -delete thay vì -exec rm để an toàn hơn)
+    find /root/.local -type d -name "tests" -prune -exec rm -rf {} \; 2>/dev/null || true && \
+    find /root/.local -type d -name "test" -prune -exec rm -rf {} \; 2>/dev/null || true && \
+    find /root/.local -type d -name "__pycache__" -prune -exec rm -rf {} \; 2>/dev/null || true && \
+    find /root/.local -name "*.pyc" -delete && \
+    find /root/.local -name "*.pyo" -delete
 
 # ===== Stage 2: Runtime - Image chạy thực tế =====
 FROM python:3.10-slim
