@@ -4,6 +4,8 @@ craw_data/
 
 *.md
 !README.md
+!CONTRIBUTING.md
+!CODE_OF_CONDUCT.md
 
 .env
 .env.local

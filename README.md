@@ -1027,104 +1027,48 @@ groups:
 
 ## Contributing
 
-We warmly welcome contributions from the community! Please follow these guidelines to ensure a smooth collaboration:
+We welcome contributions from the community! Whether you're fixing bugs, adding features, improving documentation, or reporting issues, your help is appreciated.
 
-### Development Workflow
+### Quick Start for Contributors
 
-1. **Fork the Repository**
+1. **Fork and clone** the repository
+2. **Create a feature branch**: `git checkout -b feature/your-feature-name`
+3. **Make your changes** following our code style guidelines
+4. **Write/update tests** for your changes
+5. **Commit** using [Conventional Commits](https://www.conventionalcommits.org/) format (e.g., `feat:`, `fix:`, `docs:`)
+6. **Submit a pull request** with a clear description
 
-    ```bash
-    git clone https://github.com/PhucHuwu/ChatBot_Dich_vu_cong.git
-    cd ChatBot_Dich_vu_cong
-    ```
+### Code Standards
 
-2. **Create Feature Branch**
+- **Style**: Follow PEP 8, use Black for formatting
+- **Testing**: Maintain 70%+ test coverage
+- **Documentation**: Add docstrings for public functions
+- **Type hints**: Required for new code
 
-    ```bash
-    git checkout -b feature/your-feature-name
-    ```
+### Before Submitting
 
-3. **Make Changes**
-
-    - Follow existing code style
-    - Add tests for new features
-    - Update documentation
-
-4. **Run Tests**
-
-    ```bash
-    pytest
-    black .
-    flake8
-    ```
-
-5. **Commit Changes**
-
-    ```bash
-    git add .
-    git commit -m "feat: add new feature"
-    ```
-
-6. **Push and Create PR**
-    ```bash
-    git push origin feature/your-feature-name
-    ```
-
-### Commit Message Convention
-
-Follow [Conventional Commits](https://www.conventionalcommits.org/):
-
--   `feat:` New feature
--   `fix:` Bug fix
--   `docs:` Documentation changes
--   `style:` Code style changes (formatting)
--   `refactor:` Code refactoring
--   `test:` Test additions or changes
--   `chore:` Build process or auxiliary tool changes
-
-### Pull Request Checklist
-
-Use this checklist in your PR description:
-
-```markdown
--   [ ] Response schema backward compatible (only added optional fields)
--   [ ] No hardcoded secrets or API keys
--   [ ] If changing embedding model: documented dimension & threshold
--   [ ] If changing metadata: updated all usages and tests
--   [ ] Updated inline documentation (docstrings/comments)
--   [ ] Successfully built index locally
--   [ ] No unnecessary large dependencies
--   [ ] Prompt changes include rationale and examples
--   [ ] Health check endpoints still functional
--   [ ] All tests passing
+```bash
+# Run these checks
+pytest                  # All tests must pass
+black .                 # Format code
+flake8                  # Lint code
 ```
 
-### Code Style
+### Detailed Guidelines
 
--   **Python**: Follow PEP 8
--   **Naming**: snake_case for functions/variables, UPPER_CASE for constants
--   **Type Hints**: Use for all new functions
--   **Docstrings**: Required for public functions
+For comprehensive information on:
+- Development setup and environment configuration
+- Detailed coding standards and best practices
+- Testing guidelines and coverage requirements
+- Pull request process and review criteria
+- Issue reporting templates
+- Community guidelines and communication
 
-Example:
+Please read our [**CONTRIBUTING.md**](CONTRIBUTING.md) guide.
 
-```python
-def search_rag(query: str, k: int = 10) -> List[Dict[str, Any]]:
-    """
-    Search for relevant contexts using RAG pipeline.
+### Code of Conduct
 
-    Args:
-        query: User's search query
-        k: Number of results to return
-
-    Returns:
-        List of context dictionaries with metadata
-
-    Raises:
-        ValueError: If query is empty
-    """
-    pass
-```
+This project adheres to a [Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior through GitHub issues or contact maintainers directly.
 
 ## Troubleshooting
 
@@ -1327,7 +1271,7 @@ This project was created to improve access to Vietnamese public administrative s
 
 <div align="center">
 
-**Made by Phuc Tran Huu - ITPTIT**
+**Made by Phuc Tran Huu and his friends - ITPTIT**
 
 [⬆ Back to Top](#vietnamese-public-service-chatbot-chatbot-dịch-vụ-công)
 
