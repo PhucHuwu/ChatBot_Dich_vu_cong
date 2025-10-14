@@ -428,7 +428,9 @@ print(result["answer"])
 
 ### Rebuilding the Index
 
-When you update data files ([`data/faq.json`](data/faq.json), [`data/guide.json`](data/guide.json)):
+When you update data files in the `data/` directory (such as `faq.json` and `guide.json`):
+
+> **Note:** Data JSON files are excluded from version control but are required for the application to function. Make sure they exist locally.
 
 #### Linux/macOS:
 
@@ -780,7 +782,7 @@ tests/
 └── test_context_analyzer.py # Context analysis tests
 ```
 
-See the [`tests/`](tests/) directory for all test files.
+See the `tests/` directory for all test files.
 
 ### Example Test Cases
 
@@ -837,7 +839,7 @@ def test_chat_endpoint_success(client):
 ### Caching Layer
 
 ```python
-# LRU cache for repeated queries (see [`cache.py`](cache.py))
+# LRU cache for repeated queries (see cache.py)
 ENABLE_CACHE=True
 CACHE_MAX_SIZE=1000
 CACHE_TTL=3600  # 1 hour
@@ -870,7 +872,7 @@ index = faiss.IndexHNSWFlat(dimension, 32)
 
 ```python
 # Reuse HTTP connections to Groq API
-# Already implemented in [`llm_client.py`](llm_client.py)
+# Already implemented in llm_client.py
 ```
 
 ### Monitoring Performance
@@ -1275,7 +1277,7 @@ LOG_LEVEL=DEBUG
 .\scripts\health_check.ps1
 ```
 
-See the [`scripts/`](scripts/) directory for all available scripts.
+See the `scripts/` directory for all available scripts.
 
 ### Getting Help
 
