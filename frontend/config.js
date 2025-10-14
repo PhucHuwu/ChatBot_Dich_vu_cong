@@ -1,7 +1,11 @@
 const CONFIG = {
     BASE_PATH: "",
 
-    API_BASE_URL: "https://gazeless-jeanett-bathetic.ngrok-free.dev",
+    API_BASE_URL:
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+            ? `${window.location.protocol}//${window.location.host}`
+            : "https://gazeless-jeanett-bathetic.ngrok-free.dev",
 
     ENDPOINTS: {
         CHAT: "/api/chat",
