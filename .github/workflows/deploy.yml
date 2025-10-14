@@ -48,12 +48,12 @@ jobs:
             DEPLOY_DIR="/opt/chatbot-dichvucong"
             
             # Tạo thư mục nếu chưa có
-            if [ ! -d "$DEPLOY_DIR" ]; then
+            if [ ! -d "\$DEPLOY_DIR" ]; then
               echo "📁 Creating deploy directory..."
-              mkdir -p $DEPLOY_DIR
+              mkdir -p "\$DEPLOY_DIR"
             fi
             
-            cd $DEPLOY_DIR
+            cd "\$DEPLOY_DIR"
             
             # Clone hoặc pull code
             if [ ! -d ".git" ]; then
