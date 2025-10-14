@@ -87,9 +87,11 @@ jobs:
           MAX_QUERY_LENGTH=1000
           EOF
             
-            # Stop containers cũ
-            echo "🛑 Stopping old containers..."
-            docker-compose down || true
+            # Stop và xóa containers cũ hoàn toàn
+            echo "🛑 Stopping and removing old containers..."
+            docker-compose down -v --remove-orphans 2>/dev/null || true
+            docker rm -f chatbot-dichvucong 2>/dev/null || true
+            docker container prune -f
             
             # Build và start containers mới
             echo "🔨 Building and starting containers..."
