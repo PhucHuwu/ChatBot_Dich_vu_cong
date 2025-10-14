@@ -109,29 +109,38 @@ jobs:
             echo "🔨 Building and starting containers..."
             docker-compose up -d --build
             
+            # Kiểm tra container đã start chưa
+            echo "📊 Container status:"
+            docker-compose ps
+            
             # Cleanup images cũ
             echo "🧹 Cleaning up old images..."
             docker image prune -f
             
             # Kiểm tra health
             echo "🏥 Waiting for service to be healthy..."
-            sleep 10
+            echo "⚠️  First deployment may take 2-3 minutes to build index and load models"
+            sleep 30
             
-            MAX_RETRIES=30
+            MAX_RETRIES=60
             RETRY_COUNT=0
-            while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            while [ \$RETRY_COUNT -lt \$MAX_RETRIES ]; do
               if curl -f http://localhost:8000/health > /dev/null 2>&1; then
                 echo "✅ Service is healthy!"
                 break
               fi
-              RETRY_COUNT=$((RETRY_COUNT + 1))
-              echo "⏳ Waiting... ($RETRY_COUNT/$MAX_RETRIES)"
-              sleep 2
+              RETRY_COUNT=\$((RETRY_COUNT + 1))
+              echo "⏳ Waiting... (\$RETRY_COUNT/\$MAX_RETRIES)"
+              sleep 3
             done
             
-            if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
-              echo "❌ Service health check failed!"
-              docker-compose logs --tail=50
+            if [ \$RETRY_COUNT -eq \$MAX_RETRIES ]; then
+              echo "❌ Service health check failed after \$((MAX_RETRIES * 3)) seconds!"
+              echo "📋 Container status:"
+              docker-compose ps
+              echo ""
+              echo "📋 Last 100 lines of logs:"
+              docker-compose logs --tail=100
               exit 1
             fi
             
