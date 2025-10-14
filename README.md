@@ -105,7 +105,7 @@ This chatbot brings powerful AI capabilities to help citizens access public serv
     -   Model: `paraphrase-multilingual-MiniLM-L12-v2`
 -   **FAISS**: Efficient vector similarity search (Facebook AI)
 -   **Groq**: High-performance LLM API
-    -   Default Model: `meta-llama/llama-4-scout-17b-16e-instruct`
+    -   Default Model: `openai/gpt-oss-120b`
 
 ### Data Processing
 
@@ -123,10 +123,10 @@ This chatbot brings powerful AI capabilities to help citizens access public serv
 
 ### System Requirements
 
--   **Python**: 3.10 or higher
--   **RAM**: Minimum 4GB (8GB+ recommended for production)
--   **Disk Space**: ~5GB for models and dependencies
--   **OS**: Linux, macOS, or Windows with WSL2
+-   **Python**: 3.12.3 or higher (3.10+ minimum supported)
+-   **RAM**: Minimum 1.5GB (2GB+ recommended for production)
+-   **Disk Space**: ~3GB for models and dependencies
+-   **OS**: Linux, macOS, or Windows
 
 ### Optional (Recommended for Performance)
 
@@ -270,15 +270,34 @@ APP_ENV=development              # development | staging | production
 DEBUG=False
 HOST=0.0.0.0
 PORT=8000
+WORKERS=4
+
+# Base Path (leave empty for root deployment)
+BASE_PATH=/chatbot
+
+# CORS Configuration
+ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5500
 
 # LLM
 LLM_MODEL=openai/gpt-oss-120b
 LLM_TEMPERATURE=1
 LLM_MAX_TOKENS=8192
+LLM_TIMEOUT=60
+LLM_REASONING_EFFORT=medium      # low | medium | high
+LLM_STREAM=True
+
+# Embedding
+EMBEDDING_MODEL=sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+EMBEDDING_BATCH_SIZE=32
+EMBEDDING_DEVICE=auto            # auto | cuda | cpu
 
 # Vector Search
+INDEX_PATH=embeddings/faiss_index.bin
+METADATA_PATH=embeddings/metadata.pkl
 SIMILARITY_THRESHOLD=1.2
 TOP_K_DEFAULT=10
+TOP_K_FALLBACK=3
+MAX_CONTEXTS_RESPONSE=5
 
 # Cache
 ENABLE_CACHE=True
@@ -287,6 +306,19 @@ CACHE_TTL=3600
 
 # Logging
 LOG_LEVEL=INFO
+ENABLE_JSON_LOGGING=False
+
+# Rate Limiting
+ENABLE_RATE_LIMIT=False
+RATE_LIMIT_PER_MINUTE=60
+
+# Chat Configuration
+MAX_CHAT_HISTORY=10
+CONTEXT_WINDOW_MESSAGES=5
+
+# Security
+EXPOSE_DOCS=True
+MAX_QUERY_LENGTH=1000
 ```
 
 For detailed configuration options and explanations, refer to [`.env.example`](.env.example).
@@ -314,61 +346,7 @@ The system automatically validates critical configurations on startup (see [`con
     - Type your question in Vietnamese
     - Press Enter or click Send
     - View responses with source attributions
-    - Enjoy rich markdown formatting (tables, code blocks, etc.)
-
-### Markdown Support
-
-The frontend fully supports **GitHub Flavored Markdown (GFM)** for rich content display. The chatbot can return responses with:
-
-#### Supported Formats:
-
-| Feature              | Example                | Description                      |
-| -------------------- | ---------------------- | -------------------------------- |
-| **Tables**           | `\| Header \| Cell \|` | Styled tables with hover effects |
-| **Code Blocks**      | ` ```python ``` `      | Syntax-highlighted code          |
-| **Inline Code**      | `` `code` ``           | Monospace inline text            |
-| **Bold/Italic**      | `**bold**`, `*italic*` | Text emphasis                    |
-| **Lists**            | `- item` or `1. item`  | Ordered/unordered lists          |
-| **Links**            | `[text](url)`          | Auto-detected external links     |
-| **Blockquotes**      | `> quote`              | Styled quotations                |
-| **Headers**          | `# H1`, `## H2`        | Section headers                  |
-| **Horizontal Rules** | `---`                  | Section dividers                 |
-| **Strikethrough**    | `~~text~~`             | Crossed-out text                 |
-
-#### Special Auto-Detection:
-
--   **Phone Numbers**: `0123456789` → Clickable `tel:` link with phone icon
--   **Email Addresses**: `support@example.com` → Clickable `mailto:` link with envelope icon
--   **URLs**: `https://example.com` → External link with icon
-
-#### Example Response:
-
-```markdown
-## Các phương thức thanh toán
-
-| Phương thức      | Phí          | Thời gian |
-| ---------------- | ------------ | --------- |
-| Internet Banking | **Miễn phí** | 1-2 phút  |
-| Ví điện tử       | 1,000 VNĐ    | Tức thì   |
-
-### Hướng dẫn:
-
-1. Chọn **phương thức** phù hợp
-2. Làm theo _hướng dẫn_ trên màn hình
-3. Nhập mã OTP để xác nhận
-
-> **Lưu ý:** Kiểm tra kỹ thông tin trước khi xác nhận
-
-Liên hệ hỗ trợ: 18008798 hoặc support@dichvucong.gov.vn
-```
-
-### API Usage
-
-````
-
-**Full Documentation**: See [`docs/MARKDOWN_SUPPORT.md`](docs/MARKDOWN_SUPPORT.md) for complete feature list and examples.
-
-**Test Page**: Open [`frontend/markdown-test.html`](frontend/markdown-test.html) to see all markdown features in action.
+    - Supports markdown formatting in responses
 
 ### API Usage
 
@@ -378,8 +356,7 @@ Liên hệ hỗ trợ: 18008798 hoặc support@dichvucong.gov.vn
 curl -X POST "http://localhost:8000/api/chat" \
   -H "Content-Type: application/json" \
   -d '{
-    "message": "Làm thế nào để đăng ký thường trú?",
-    "top_k": 5,
+    "query": "Làm thế nào để đăng ký thường trú?",
     "chat_history": []
   }'
 ````
@@ -396,17 +373,21 @@ curl -X POST "http://localhost:8000/api/chat" \
             "type": "guide",
             "category": "Đăng ký cư trú",
             "href": "https://dichvucong.gov.vn/...",
-            "distance": 0.85
+            "title": "Đăng ký thường trú"
         }
     ],
     "sources": [
         {
-            "title": "guide - Đăng ký cư trú",
-            "url": "https://dichvucong.gov.vn/..."
+            "source": "Nguồn 1",
+            "type": "guide",
+            "title": "Đăng ký thường trú",
+            "href": "https://dichvucong.gov.vn/..."
         }
     ],
     "success": true,
-    "trace_id": "abc123-def456-ghi789"
+    "message": "Trả lời thành công",
+    "trace_id": "abc123-def456-ghi789",
+    "process_time": 1.234
 }
 ```
 
@@ -420,12 +401,11 @@ class ChatbotClient:
         self.base_url = base_url
         self.chat_history = []
 
-    def ask(self, question, top_k=5):
+    def ask(self, question):
         response = requests.post(
             f"{self.base_url}/api/chat",
             json={
-                "message": question,
-                "top_k": top_k,
+                "query": question,
                 "chat_history": self.chat_history
             }
         )
@@ -473,14 +453,18 @@ build_index(batch_size=32)
 
 ### Endpoints Overview
 
-| Endpoint           | Method | Description            | Auth Required |
-| ------------------ | ------ | ---------------------- | ------------- |
-| `/health`          | GET    | Basic health check     | No            |
-| `/api/status`      | GET    | Detailed system status | No            |
-| `/api/chat`        | POST   | Chat with the bot      | No            |
-| `/api/build-index` | POST   | Rebuild vector index   | Yes (Future)  |
-| `/api/docs`        | GET    | Interactive API docs   | No            |
-| `/api/redoc`       | GET    | API documentation      | No            |
+| Endpoint              | Method | Description                | Auth Required |
+| --------------------- | ------ | -------------------------- | ------------- |
+| `/`                   | GET    | Frontend homepage          | No            |
+| `/health`             | GET    | Basic health check         | No            |
+| `/api/status`         | GET    | Detailed system status     | No            |
+| `/api/chat`           | POST   | Chat with the bot          | No            |
+| `/api/build`          | POST   | Rebuild vector index       | No            |
+| `/api/cache/stats`    | GET    | Get cache statistics       | No            |
+| `/api/cache/clear`    | POST   | Clear cache                | No            |
+| `/api/suggestions`    | GET    | Get suggested questions    | No            |
+| `/api/docs`           | GET    | Interactive API docs       | No            |
+| `/api/redoc`          | GET    | API documentation          | No            |
 
 ### Detailed Endpoint Specifications
 
@@ -495,7 +479,9 @@ GET /health
 ```json
 {
     "status": "healthy",
-    "timestamp": "2025-10-08T10:30:00Z"
+    "message": "Cổng Dịch vụ công Quốc gia API đang hoạt động",
+    "environment": "production",
+    "timestamp": 1728385800.123
 }
 ```
 
@@ -509,18 +495,23 @@ GET /api/status
 
 ```json
 {
-    "status": "operational",
-    "version": "1.0.0",
-    "environment": "production",
-    "indexing_available": true,
-    "cache_enabled": true,
-    "cache_size": 245,
+    "status": "active",
     "device_info": {
-        "device": "cuda:0",
-        "gpu_available": true,
-        "gpu_name": "NVIDIA RTX 3080"
+        "device": "cpu",
+        "device_name": "CPU",
+        "gpu_available": false
     },
-    "uptime_seconds": 3600
+    "indexing_available": true,
+    "cache_stats": {
+        "enabled": true,
+        "size": 245,
+        "max_size": 1000,
+        "hits": 150,
+        "misses": 95,
+        "hit_rate": 0.61
+    },
+    "message": "Hệ thống chatbot hoạt động bình thường",
+    "environment": "production"
 }
 ```
 
@@ -534,12 +525,15 @@ POST /api/chat
 
 ```json
 {
-    "message": "Thủ tục cấp CMND mất cần gì?",
-    "top_k": 5,
+    "query": "Thủ tục cấp CMND mất cần gì?",
     "chat_history": [
         {
-            "question": "Previous question",
-            "answer": "Previous answer"
+            "role": "user",
+            "content": "Previous question"
+        },
+        {
+            "role": "assistant",
+            "content": "Previous answer"
         }
     ]
 }
@@ -547,9 +541,10 @@ POST /api/chat
 
 **Validation Rules:**
 
--   `message`: Required, 1-1000 characters
--   `top_k`: Optional, 1-20, default: 10
--   `chat_history`: Optional, max 10 items
+-   `query`: Required, 1-1000 characters, non-empty after trimming
+-   `chat_history`: Optional, array of ChatMessage objects
+    -   `role`: Required, must be "user", "assistant", or "system"
+    -   `content`: Required, message content
 
 **Response:**
 
@@ -601,19 +596,20 @@ When `EXPOSE_DOCS=True`, access:
 
 ### Production Deployment Checklist
 
--   [ ] Set `APP_ENV=production`
--   [ ] Set `DEBUG=False`
--   [ ] Configure `ALLOWED_ORIGINS` with your domain
--   [ ] Set `EXPOSE_DOCS=False` (security)
--   [ ] Use strong `GROQ_API_KEY`
--   [ ] Set up HTTPS/TLS termination
--   [ ] Configure reverse proxy (Nginx/Traefik)
--   [ ] Set up monitoring and alerting
--   [ ] Configure log aggregation
--   [ ] Set up automated backups for `embeddings/`
--   [ ] Implement rate limiting
--   [ ] Configure firewall rules
--   [ ] Set resource limits (CPU/Memory)
+-   [ ] Set `APP_ENV=production` in environment variables
+-   [ ] Set `DEBUG=False` in environment variables
+-   [ ] Configure `ALLOWED_ORIGINS` with your actual domain(s)
+-   [ ] Configure `BASE_PATH` if deploying to a sub-path
+-   [ ] Set `EXPOSE_DOCS=False` for production security
+-   [ ] Use valid `GROQ_API_KEY` from Groq console
+-   [ ] Set up HTTPS/TLS termination (Nginx/Traefik/Caddy)
+-   [ ] Configure reverse proxy with proper timeouts
+-   [ ] Set up log aggregation if needed
+-   [ ] Set up automated backups for `embeddings/` directory
+-   [ ] Enable rate limiting with `ENABLE_RATE_LIMIT=True` if needed
+-   [ ] Configure firewall rules for your infrastructure
+-   [ ] Set appropriate resource limits (CPU/Memory) based on load
+-   [ ] Build FAISS index before deploying: `python -c "from rag import build_index; build_index()"`
 
 ### Docker Production Deployment
 
@@ -629,12 +625,15 @@ docker run -d \
   -e APP_ENV=production \
   -e DEBUG=False \
   -e GROQ_API_KEY=${GROQ_API_KEY} \
-  -e WORKERS=4 \
+  -e WORKERS=2 \
   -e LOG_LEVEL=INFO \
-  -v /data/embeddings:/app/embeddings \
-  -v /data/source:/app/data:ro \
-  --memory="4g" \
-  --cpus="2.0" \
+  -e ENABLE_CACHE=True \
+  -e CACHE_MAX_SIZE=500 \
+  -e CACHE_TTL=3600 \
+  -v $(pwd)/embeddings:/app/embeddings \
+  -v $(pwd)/data:/app/data:ro \
+  --memory="1536M" \
+  --cpus="1.0" \
   chatbot-dichvucong:v1.0.0
 ```
 
@@ -672,11 +671,11 @@ spec:
                                 key: groq-api-key
                   resources:
                       requests:
-                          memory: "2Gi"
-                          cpu: "1000m"
+                          memory: "768Mi"
+                          cpu: "500m"
                       limits:
-                          memory: "4Gi"
-                          cpu: "2000m"
+                          memory: "1536Mi"
+                          cpu: "1000m"
                   livenessProbe:
                       httpGet:
                           path: /health
@@ -769,9 +768,6 @@ pytest tests/test_api.py
 
 # Run with verbose output
 pytest -v
-
-# Run only unit tests (fast)
-pytest -m "not slow and not llm"
 ```
 
 ### Test Structure
@@ -841,7 +837,7 @@ def test_chat_endpoint_success(client):
 ### Caching Layer
 
 ```python
-# LRU cache for repeated queries (see cache.py)
+# LRU cache for repeated queries (see [`cache.py`](cache.py))
 ENABLE_CACHE=True
 CACHE_MAX_SIZE=1000
 CACHE_TTL=3600  # 1 hour
@@ -849,14 +845,14 @@ CACHE_TTL=3600  # 1 hour
 
 #### 2. Batch Processing
 
-```python
+```bash
 # Embed multiple queries in batches
 EMBEDDING_BATCH_SIZE=32
 ```
 
 #### 3. GPU Acceleration
 
-```python
+```bash
 # Use GPU for embedding if available
 EMBEDDING_DEVICE=cuda
 ```
@@ -874,7 +870,7 @@ index = faiss.IndexHNSWFlat(dimension, 32)
 
 ```python
 # Reuse HTTP connections to Groq API
-# Already implemented in llm_client.py (see llm_client.py)
+# Already implemented in [`llm_client.py`](llm_client.py)
 ```
 
 ### Monitoring Performance
@@ -892,9 +888,9 @@ index = faiss.IndexHNSWFlat(dimension, 32)
 
 | Load Level              | Configuration                      |
 | ----------------------- | ---------------------------------- |
-| Low (< 10 req/s)        | 2 workers, 2GB RAM, CPU only       |
-| Medium (10-50 req/s)    | 4 workers, 4GB RAM, CPU + cache    |
-| High (50-100 req/s)     | 8 workers, 8GB RAM, GPU + cache    |
+| Low (< 10 req/s)        | 2 workers, 1.5GB RAM, CPU only     |
+| Medium (10-50 req/s)    | 4 workers, 2GB RAM, CPU + cache    |
+| High (50-100 req/s)     | 8 workers, 4GB RAM, GPU + cache    |
 | Very High (> 100 req/s) | Multiple instances + load balancer |
 
 ## Monitoring & Logging
@@ -1283,12 +1279,12 @@ See the [`scripts/`](scripts/) directory for all available scripts.
 
 ### Getting Help
 
-If you encounter any issues:
+If you encounter any issues, we're here to help:
 
 1. **Check Documentation**: Review this README and inline code comments
 2. **Search Issues**: Check [existing GitHub Issues](https://github.com/PhucHuwu/ChatBot_Dich_vu_cong/issues) for similar problems
 3. **Enable Debug Logging**: Set `LOG_LEVEL=DEBUG` for detailed diagnostics
-4. **Create Issue**: If the problem persists, create a new issue with logs, configuration, and steps to reproduce
+4. **Create Issue**: If the problem persists, please create a new issue with logs, configuration, and steps to reproduce
 
 ## License
 
@@ -1321,9 +1317,9 @@ This project was created to improve access to Vietnamese public administrative s
 
 -   [FastAPI Documentation](https://fastapi.tiangolo.com/)
 -   [FAISS Wiki](https://github.com/facebookresearch/faiss/wiki)
--   [RAG Best Practices](https://www.pinecone.io/learn/retrieval-augmented-generation/)
--   [Sentence Transformers Documentation](https://www.sbert.net/docs/quickstart.html)
--   [Docker Best Practices](https://docs.docker.com/develop/dev-best-practices/)
+-   [Sentence Transformers Documentation](https://www.sbert.net/)
+-   [Groq API Documentation](https://console.groq.com/docs)
+-   [Docker Documentation](https://docs.docker.com/)
 
 ---
 
