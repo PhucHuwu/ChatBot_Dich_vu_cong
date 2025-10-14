@@ -2236,6 +2236,70 @@ body.dark-mode .scroll-to-bottom:hover {
     }
 }
 
+@media (display-mode: standalone) {
+    .chat-input-container {
+        padding-bottom: calc(15px + env(safe-area-inset-bottom)) !important;
+    }
+
+    .quick-actions {
+        padding-bottom: calc(15px + env(safe-area-inset-bottom)) !important;
+    }
+
+    @media (max-width: 768px) {
+        .chat-messages {
+            padding-bottom: 20px !important;
+        }
+
+        .scroll-to-bottom {
+            bottom: calc(90px + env(safe-area-inset-bottom)) !important;
+        }
+
+        .chat-container {
+            padding-bottom: 0 !important;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .chat-input-container {
+            padding-bottom: calc(12px + env(safe-area-inset-bottom)) !important;
+        }
+
+        .chat-messages {
+            padding-bottom: 12px !important;
+        }
+    }
+}
+
+@media (display-mode: fullscreen) {
+    .chat-input-container {
+        padding-bottom: calc(15px + env(safe-area-inset-bottom)) !important;
+    }
+
+    .quick-actions {
+        padding-bottom: calc(15px + env(safe-area-inset-bottom)) !important;
+    }
+
+    @media (max-width: 768px) {
+        .chat-messages {
+            padding-bottom: 20px !important;
+        }
+
+        .chat-container {
+            padding-bottom: 0 !important;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .chat-input-container {
+            padding-bottom: calc(12px + env(safe-area-inset-bottom)) !important;
+        }
+
+        .chat-messages {
+            padding-bottom: 12px !important;
+        }
+    }
+}
+
 button,
 input,
 select,
