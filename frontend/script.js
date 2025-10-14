@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const sendButton = document.getElementById("send-button");
     const typingIndicator = document.getElementById("typing-indicator");
     const quickActions = document.getElementById("quick-actions");
+    const announcer = document.getElementById("announcer");
 
     const sidebar = document.getElementById("sidebar");
     const sidebarToggle = document.getElementById("sidebar-toggle");
@@ -32,20 +33,62 @@ document.addEventListener("DOMContentLoaded", function () {
     let conversations = {};
     let currentConversationId = null;
 
+    function announce(message, priority = "polite") {
+        if (!announcer) return;
+        announcer.setAttribute("aria-live", priority);
+        announcer.textContent = "";
+        setTimeout(() => {
+            announcer.textContent = message;
+        }, 100);
+    }
+
+    function trapFocus(element) {
+        const focusableElements = element.querySelectorAll(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        const firstFocusable = focusableElements[0];
+        const lastFocusable = focusableElements[focusableElements.length - 1];
+
+        element.addEventListener("keydown", function (e) {
+            if (e.key !== "Tab") return;
+
+            if (e.shiftKey) {
+                if (document.activeElement === firstFocusable) {
+                    lastFocusable.focus();
+                    e.preventDefault();
+                }
+            } else {
+                if (document.activeElement === lastFocusable) {
+                    firstFocusable.focus();
+                    e.preventDefault();
+                }
+            }
+        });
+
+        firstFocusable.focus();
+    }
+
     function showConfirmModal(message, title = "Xác nhận") {
         return new Promise((resolve) => {
             confirmModalTitle.textContent = title;
             confirmModalMessage.textContent = message;
             confirmModalOverlay.classList.add("active");
+            confirmModalOverlay.setAttribute("aria-hidden", "false");
+            
+            setTimeout(() => {
+                trapFocus(document.querySelector(".confirm-modal"));
+            }, 100);
 
             const handleConfirm = () => {
                 confirmModalOverlay.classList.remove("active");
+                confirmModalOverlay.setAttribute("aria-hidden", "true");
                 cleanup();
                 resolve(true);
             };
 
             const handleCancel = () => {
                 confirmModalOverlay.classList.remove("active");
+                confirmModalOverlay.setAttribute("aria-hidden", "true");
                 cleanup();
                 resolve(false);
             };
@@ -1001,13 +1044,23 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function toggleSidebar() {
-        sidebar.classList.toggle("active");
+        const isActive = sidebar.classList.toggle("active");
         sidebarOverlay.classList.toggle("active");
+        sidebarToggle.setAttribute("aria-expanded", isActive);
+        sidebarOverlay.setAttribute("aria-hidden", !isActive);
+        
+        if (isActive) {
+            announce("Thanh bên đã được mở");
+        } else {
+            announce("Thanh bên đã được đóng");
+        }
     }
 
     function closeSidebar() {
         sidebar.classList.remove("active");
         sidebarOverlay.classList.remove("active");
+        sidebarToggle.setAttribute("aria-expanded", "false");
+        sidebarOverlay.setAttribute("aria-hidden", "true");
     }
 
     sidebarToggle.addEventListener("click", toggleSidebar);
@@ -1092,4 +1145,63 @@ document.addEventListener("DOMContentLoaded", function () {
                 "Tính năng đính kèm file sẽ được hỗ trợ trong phiên bản tiếp theo."
             );
         });
+
+    document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") {
+            if (confirmModalOverlay.classList.contains("active")) {
+                confirmBtnCancel.click();
+                e.preventDefault();
+            } else if (sidebar.classList.contains("active")) {
+                closeSidebar();
+                e.preventDefault();
+            }
+        }
+
+        if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+            e.preventDefault();
+            userInput.focus();
+            announce("Focus đã chuyển đến ô nhập tin nhắn");
+        }
+
+        if ((e.ctrlKey || e.metaKey) && e.key === "b") {
+            e.preventDefault();
+            toggleSidebar();
+        }
+
+        if (e.altKey && e.key === "n") {
+            e.preventDefault();
+            createNewConversation();
+            announce("Đã tạo đoạn chat mới");
+        }
+    });
+
+    const conversationItems = document.querySelectorAll(".conversation-item");
+    conversationItems.forEach((item) => {
+        item.setAttribute("role", "listitem");
+        item.setAttribute("tabindex", "0");
+
+        item.addEventListener("keydown", function (e) {
+            if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                this.click();
+            }
+        });
+    });
+
+    quickActions.addEventListener("keydown", function (e) {
+        const quickActionItems = Array.from(
+            quickActions.querySelectorAll(".quick-action-item")
+        );
+        const currentIndex = quickActionItems.indexOf(document.activeElement);
+
+        if (e.key === "ArrowRight" && currentIndex < quickActionItems.length - 1) {
+            e.preventDefault();
+            quickActionItems[currentIndex + 1].focus();
+        } else if (e.key === "ArrowLeft" && currentIndex > 0) {
+            e.preventDefault();
+            quickActionItems[currentIndex - 1].focus();
+        }
+    });
+
+    announce("Chatbot Dịch vụ công đã sẵn sàng", "polite");
 });

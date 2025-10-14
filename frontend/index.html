@@ -33,37 +33,39 @@
 </head>
 
 <body>
-    <div class="sidebar" id="sidebar">
+    <a href="#chat-box" class="skip-to-content">Bỏ qua đến nội dung chính</a>
+    
+    <nav class="sidebar" id="sidebar" role="navigation" aria-label="Danh sách cuộc trò chuyện">
         <div class="sidebar-header">
             <h3><i class="fas fa-comments"></i> Lịch sử chat</h3>
-            <button class="sidebar-close" id="sidebar-close">
+            <button class="sidebar-close" id="sidebar-close" aria-label="Đóng thanh bên">
                 <i class="fas fa-times"></i>
             </button>
         </div>
 
-        <button class="new-chat-btn" id="new-chat-btn">
+        <button class="new-chat-btn" id="new-chat-btn" aria-label="Tạo đoạn chat mới">
             <i class="fas fa-plus"></i>
             <span>Đoạn chat mới</span>
         </button>
 
-        <div class="conversations-list" id="conversations-list">
+        <div class="conversations-list" id="conversations-list" role="list" aria-live="polite">
         </div>
 
         <div class="sidebar-footer">
-            <button class="sidebar-action-btn" id="sidebar-theme-toggle" title="Đổi chế độ sáng/tối">
+            <button class="sidebar-action-btn" id="sidebar-theme-toggle" title="Đổi chế độ sáng/tối" aria-label="Đổi chế độ sáng/tối">
                 <i class="fas fa-moon"></i>
             </button>
-            <button class="sidebar-action-btn" id="sidebar-support-btn" title="Liên hệ hỗ trợ">
+            <button class="sidebar-action-btn" id="sidebar-support-btn" title="Liên hệ hỗ trợ" aria-label="Liên hệ hỗ trợ">
                 <i class="fas fa-headset"></i>
             </button>
         </div>
-    </div>
+    </nav>
 
-    <div class="chat-container">
-        <div class="chat-header">
+    <main class="chat-container" role="main">
+        <header class="chat-header" role="banner">
             <div class="header-content">
                 <div class="header-left">
-                    <button class="sidebar-toggle" id="sidebar-toggle">
+                    <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Mở thanh bên" aria-expanded="false" aria-controls="sidebar">
                         <i class="fas fa-bars"></i>
                     </button>
                     <div class="bot-avatar">
@@ -78,17 +80,17 @@
                     </div>
                 </div>
                 <div class="header-actions">
-                    <button class="action-btn" id="theme-toggle" title="Đổi chế độ sáng/tối">
+                    <button class="action-btn" id="theme-toggle" title="Đổi chế độ sáng/tối" aria-label="Đổi chế độ sáng/tối">
                         <i class="fas fa-moon"></i>
                     </button>
-                    <button class="action-btn" title="Liên hệ hỗ trợ">
+                    <button class="action-btn" title="Liên hệ hỗ trợ" aria-label="Liên hệ hỗ trợ">
                         <i class="fas fa-headset"></i>
                     </button>
                 </div>
             </div>
-        </div>
+        </header>
 
-        <div id="chat-box" class="chat-messages">
+        <div id="chat-box" class="chat-messages" role="log" aria-live="polite" aria-relevant="additions" aria-label="Tin nhắn chat">
             <div class="welcome-message">
                 <div class="bot-message">
                     <div class="message-avatar">
@@ -114,7 +116,7 @@
             </div>
         </div>
 
-        <div id="typing-indicator" class="typing-indicator" style="display: none;">
+        <div id="typing-indicator" class="typing-indicator" style="display: none;" role="status" aria-live="polite" aria-label="Bot đang nhập...">
             <div class="message-avatar">
                 <i class="fas fa-landmark"></i>
             </div>
@@ -125,44 +127,46 @@
             </div>
         </div>
 
-        <button class="scroll-to-bottom" id="scroll-to-bottom" style="display: none;">
+        <button class="scroll-to-bottom" id="scroll-to-bottom" style="display: none;" aria-label="Cuộn xuống cuối">
             <i class="fas fa-arrow-down"></i>
         </button>
 
-        <div class="quick-actions" id="quick-actions">
-            <div class="quick-action-item" data-message="Hướng dẫn đăng ký tài khoản công dân">
+        <div class="quick-actions" id="quick-actions" role="group" aria-label="Câu hỏi gợi ý">
+            <button class="quick-action-item" data-message="Hướng dẫn đăng ký tài khoản công dân" role="button" tabindex="0" aria-label="Gợi ý: Hướng dẫn đăng ký tài khoản công dân">
                 <i class="fas fa-user-plus"></i>
                 <span>Đăng ký tài khoản</span>
-            </div>
-            <div class="quick-action-item" data-message="Hướng dẫn nộp tiền điện">
+            </button>
+            <button class="quick-action-item" data-message="Hướng dẫn nộp tiền điện" role="button" tabindex="0" aria-label="Gợi ý: Hướng dẫn nộp tiền điện">
                 <i class="fas fa-bolt"></i>
                 <span>Nộp tiền điện</span>
-            </div>
-            <div class="quick-action-item" data-message="Hướng dẫn sử dụng tiện ích giáo dục">
+            </button>
+            <button class="quick-action-item" data-message="Hướng dẫn sử dụng tiện ích giáo dục" role="button" tabindex="0" aria-label="Gợi ý: Hướng dẫn sử dụng tiện ích giáo dục">
                 <i class="fas fa-graduation-cap"></i>
                 <span>Tiện ích giáo dục</span>
-            </div>
+            </button>
         </div>
 
-        <div class="chat-input-container">
-            <form id="chat-form" class="chat-form">
+        <div class="chat-input-container" role="region" aria-label="Khu vực nhập tin nhắn">
+            <form id="chat-form" class="chat-form" aria-label="Form gửi tin nhắn">
                 <div class="input-wrapper">
-                    <button type="button" class="attachment-btn" title="Đính kèm file">
+                    <button type="button" class="attachment-btn" title="Đính kèm file" aria-label="Đính kèm file">
                         <i class="fas fa-paperclip"></i>
                     </button>
-                    <input type="text" id="user-input" placeholder="Nhập tin nhắn..." autocomplete="off" required>
-                    <button type="submit" id="send-button">
+                    <input type="text" id="user-input" placeholder="Nhập tin nhắn..." autocomplete="off" required aria-label="Nhập tin nhắn" aria-describedby="input-hint">
+                    <button type="submit" id="send-button" aria-label="Gửi tin nhắn">
                         <i class="fas fa-paper-plane"></i>
                     </button>
                 </div>
             </form>
         </div>
-    </div>
+    </main>
 
-    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <div class="sidebar-overlay" id="sidebar-overlay" aria-hidden="true"></div>
 
-    <div class="confirm-modal-overlay" id="confirm-modal-overlay">
-        <div class="confirm-modal">
+    <div id="announcer" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+
+    <div class="confirm-modal-overlay" id="confirm-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title" aria-describedby="confirm-modal-message">
+        <div class="confirm-modal" tabindex="-1">
             <div class="confirm-modal-icon">
                 <i class="fas fa-exclamation-circle"></i>
             </div>
@@ -171,11 +175,11 @@
                 <p class="confirm-modal-message" id="confirm-modal-message"></p>
             </div>
             <div class="confirm-modal-actions">
-                <button class="confirm-btn confirm-btn-cancel" id="confirm-btn-cancel">
+                <button class="confirm-btn confirm-btn-cancel" id="confirm-btn-cancel" aria-label="Hủy bỏ">
                     <i class="fas fa-times"></i>
                     <span>Hủy</span>
                 </button>
-                <button class="confirm-btn confirm-btn-confirm" id="confirm-btn-confirm">
+                <button class="confirm-btn confirm-btn-confirm" id="confirm-btn-confirm" aria-label="Xác nhận hành động">
                     <i class="fas fa-check"></i>
                     <span>Xác nhận</span>
                 </button>
