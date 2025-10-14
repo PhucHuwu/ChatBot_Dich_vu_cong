@@ -1730,15 +1730,58 @@ body.dark-mode .scroll-to-bottom:hover {
 }
 
 @media (max-width: 768px) {
+    html {
+        height: 100%;
+        overflow: hidden;
+        position: fixed;
+        width: 100%;
+    }
+
+    body {
+        height: 100%;
+        overflow: hidden;
+        position: fixed;
+        width: 100%;
+    }
+
     .chat-container {
         margin-left: 0;
-        height: 100vh;
+        height: 100%;
         overflow: hidden;
+        position: fixed;
+        width: 100%;
+        top: 0;
+        left: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .chat-header {
+        flex-shrink: 0;
+    }
+
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+    }
+
+    .quick-actions {
+        flex-shrink: 0;
+    }
+
+    .chat-input-container {
+        flex-shrink: 0;
+        position: relative;
     }
 
     .sidebar {
         -webkit-transform: translateX(-100%);
         transform: translateX(-100%);
+        position: fixed;
+        height: 100%;
     }
 
     .sidebar.active {
@@ -1796,12 +1839,7 @@ body.dark-mode .scroll-to-bottom:hover {
         font-size: 13px;
     }
 
-    .chat-messages {
-        padding: 20px 15px;
-        flex: 1;
-        overflow-y: auto;
-        overflow-x: hidden;
-    }
+
 
     .typing-indicator {
         padding: 0 15px 15px;
@@ -1872,19 +1910,8 @@ body.dark-mode .scroll-to-bottom:hover {
 }
 
 @media (max-width: 480px) {
-    html {
-        overflow-x: hidden;
-        overflow-y: hidden;
-        width: 100%;
-        height: 100vh;
-    }
-
-    body {
-        overflow-x: hidden;
-        overflow-y: hidden;
-        width: 100%;
-        position: relative;
-        height: 100vh;
+    .chat-container {
+        max-height: 100%;
     }
 
     .chat-header {
@@ -1943,9 +1970,6 @@ body.dark-mode .scroll-to-bottom:hover {
 
     .chat-messages {
         padding: 12px;
-        flex: 1;
-        overflow-y: auto;
-        overflow-x: hidden;
     }
 
     .message {
@@ -2131,11 +2155,6 @@ body.dark-mode .scroll-to-bottom:hover {
 }
 
 @media (max-width: 768px) and (orientation: landscape) {
-    .chat-container {
-        height: 100vh;
-        overflow: hidden;
-    }
-
     .chat-header {
         padding: 10px 20px;
     }
@@ -2155,9 +2174,6 @@ body.dark-mode .scroll-to-bottom:hover {
 
     .chat-messages {
         padding: 15px 20px;
-        flex: 1;
-        overflow-y: auto;
-        overflow-x: hidden;
     }
 
     .message-bubble {
@@ -2177,26 +2193,47 @@ body.dark-mode .scroll-to-bottom:hover {
     #user-input {
         font-size: 16px;
     }
+
+    .chat-messages {
+        overscroll-behavior-y: contain;
+        position: relative;
+        will-change: scroll-position;
+    }
+
+    #user-input:focus {
+        transform: translateZ(0);
+    }
 }
 
 @supports (-webkit-touch-callout: none) {
     html {
-        height: -webkit-fill-available;
+        height: 100%;
+        position: fixed;
+        width: 100%;
     }
 
     body {
-        height: -webkit-fill-available;
-        min-height: -webkit-fill-available;
+        height: 100%;
+        min-height: 100%;
+        position: fixed;
+        width: 100%;
     }
 
-    .sidebar,
+    .sidebar {
+        height: 100%;
+    }
+
     .chat-container {
-        height: -webkit-fill-available;
+        height: 100%;
+        position: fixed;
+        width: 100%;
+        top: 0;
+        left: 0;
     }
 
     .sidebar-overlay,
     .confirm-modal-overlay {
-        height: -webkit-fill-available;
+        height: 100%;
     }
 
     .chat-input-container {
@@ -2210,6 +2247,7 @@ body.dark-mode .scroll-to-bottom:hover {
     @media (max-width: 768px) {
         .chat-messages {
             padding-bottom: calc(20px + env(safe-area-inset-bottom));
+            overscroll-behavior: contain;
         }
 
         .scroll-to-bottom {
@@ -2219,10 +2257,6 @@ body.dark-mode .scroll-to-bottom:hover {
         .sidebar {
             padding-bottom: env(safe-area-inset-bottom);
         }
-
-        .chat-container {
-            padding-bottom: env(safe-area-inset-bottom);
-        }
     }
 
     @media (max-width: 480px) {
@@ -2232,70 +2266,6 @@ body.dark-mode .scroll-to-bottom:hover {
 
         .chat-messages {
             padding-bottom: calc(12px + env(safe-area-inset-bottom));
-        }
-    }
-}
-
-@media (display-mode: standalone) {
-    .chat-input-container {
-        padding-bottom: calc(15px + env(safe-area-inset-bottom)) !important;
-    }
-
-    .quick-actions {
-        padding-bottom: calc(15px + env(safe-area-inset-bottom)) !important;
-    }
-
-    @media (max-width: 768px) {
-        .chat-messages {
-            padding-bottom: 20px !important;
-        }
-
-        .scroll-to-bottom {
-            bottom: calc(90px + env(safe-area-inset-bottom)) !important;
-        }
-
-        .chat-container {
-            padding-bottom: 0 !important;
-        }
-    }
-
-    @media (max-width: 480px) {
-        .chat-input-container {
-            padding-bottom: calc(12px + env(safe-area-inset-bottom)) !important;
-        }
-
-        .chat-messages {
-            padding-bottom: 12px !important;
-        }
-    }
-}
-
-@media (display-mode: fullscreen) {
-    .chat-input-container {
-        padding-bottom: calc(15px + env(safe-area-inset-bottom)) !important;
-    }
-
-    .quick-actions {
-        padding-bottom: calc(15px + env(safe-area-inset-bottom)) !important;
-    }
-
-    @media (max-width: 768px) {
-        .chat-messages {
-            padding-bottom: 20px !important;
-        }
-
-        .chat-container {
-            padding-bottom: 0 !important;
-        }
-    }
-
-    @media (max-width: 480px) {
-        .chat-input-container {
-            padding-bottom: calc(12px + env(safe-area-inset-bottom)) !important;
-        }
-
-        .chat-messages {
-            padding-bottom: 12px !important;
         }
     }
 }
