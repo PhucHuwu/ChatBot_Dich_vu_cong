@@ -1,0 +1,52 @@
+name: Test Deployment (Dry Run)
+
+# Workflow này để test deployment mà KHÔNG thực sự deploy
+# Dùng để verify SSH connection và scripts
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Test SSH Connection
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+
+      - name: Test SSH Connection
+        env:
+          SERVER_IP: ${{ secrets.SERVER_IP }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+        run: |
+          echo "Testing SSH connection to $SERVER_USER@$SERVER_IP..."
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP << 'ENDSSH'
+            echo "✅ SSH connection successful!"
+            echo "📋 Server info:"
+            echo "  - Hostname: $(hostname)"
+            echo "  - OS: $(cat /etc/os-release | grep PRETTY_NAME)"
+            echo "  - Uptime: $(uptime -p)"
+            echo ""
+            echo "🐳 Docker info:"
+            docker --version || echo "  ❌ Docker not installed"
+            docker-compose --version || echo "  ❌ Docker Compose not installed"
+            echo ""
+            echo "🌐 Nginx info:"
+            nginx -v 2>&1 || echo "  ❌ Nginx not installed"
+            echo ""
+            echo "📁 Deploy directory:"
+            ls -la /opt/chatbot-dichvucong 2>/dev/null || echo "  ⚠️  Directory not exists yet"
+          ENDSSH
+
+      - name: Test Result
+        run: |
+          echo "✅ Test completed successfully!"
+          echo "Ready for actual deployment."

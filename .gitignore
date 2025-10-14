@@ -1,6 +1,9 @@
-.github/
+.github/*.md
 docs/
 craw_data/
+
+*.md
+!README.md
 
 .env
 .env.local

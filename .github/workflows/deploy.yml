@@ -1,0 +1,138 @@
+name: Deploy to Production Server
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to Ubuntu Server
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to server
+        env:
+          SERVER_IP: ${{ secrets.SERVER_IP }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP << 'ENDSSH'
+            set -e
+            
+            echo "================================================"
+            echo "🚀 Starting deployment..."
+            echo "================================================"
+            
+            # Đường dẫn deploy
+            DEPLOY_DIR="/opt/chatbot-dichvucong"
+            
+            # Tạo thư mục nếu chưa có
+            if [ ! -d "$DEPLOY_DIR" ]; then
+              echo "📁 Creating deploy directory..."
+              mkdir -p $DEPLOY_DIR
+            fi
+            
+            cd $DEPLOY_DIR
+            
+            # Clone hoặc pull code
+            if [ ! -d ".git" ]; then
+              echo "📥 Cloning repository..."
+              git clone https://github.com/${{ github.repository }} .
+            else
+              echo "📥 Pulling latest code..."
+              git fetch origin
+              git reset --hard origin/main
+            fi
+            
+            # Tạo .env file từ secrets
+            echo "🔐 Creating .env file..."
+            cat > .env << EOF
+          APP_ENV=production
+          DEBUG=False
+          HOST=0.0.0.0
+          PORT=8000
+          WORKERS=2
+          BASE_PATH=
+          ALLOWED_ORIGINS=*
+          GROQ_API_KEY=$GROQ_API_KEY
+          LLM_MODEL=openai/gpt-oss-120b
+          LLM_TEMPERATURE=1
+          LLM_MAX_TOKENS=8192
+          LLM_TIMEOUT=60
+          LLM_REASONING_EFFORT=medium
+          LLM_STREAM=True
+          EMBEDDING_MODEL=sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+          EMBEDDING_BATCH_SIZE=32
+          EMBEDDING_DEVICE=cpu
+          SIMILARITY_THRESHOLD=1.2
+          TOP_K_DEFAULT=8
+          ENABLE_CACHE=True
+          CACHE_MAX_SIZE=500
+          CACHE_TTL=3600
+          LOG_LEVEL=INFO
+          ENABLE_JSON_LOGGING=False
+          EXPOSE_DOCS=False
+          MAX_QUERY_LENGTH=1000
+          EOF
+            
+            # Stop containers cũ
+            echo "🛑 Stopping old containers..."
+            docker-compose down || true
+            
+            # Build và start containers mới
+            echo "🔨 Building and starting containers..."
+            docker-compose up -d --build
+            
+            # Cleanup images cũ
+            echo "🧹 Cleaning up old images..."
+            docker image prune -f
+            
+            # Kiểm tra health
+            echo "🏥 Waiting for service to be healthy..."
+            sleep 10
+            
+            MAX_RETRIES=30
+            RETRY_COUNT=0
+            while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+              if curl -f http://localhost:8000/health > /dev/null 2>&1; then
+                echo "✅ Service is healthy!"
+                break
+              fi
+              RETRY_COUNT=$((RETRY_COUNT + 1))
+              echo "⏳ Waiting... ($RETRY_COUNT/$MAX_RETRIES)"
+              sleep 2
+            done
+            
+            if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+              echo "❌ Service health check failed!"
+              docker-compose logs --tail=50
+              exit 1
+            fi
+            
+            echo "================================================"
+            echo "✅ Deployment completed successfully!"
+            echo "================================================"
+            docker-compose ps
+          ENDSSH
+
+      - name: Deployment Status
+        if: always()
+        run: |
+          if [ $? -eq 0 ]; then
+            echo "✅ Deployment successful!"
+          else
+            echo "❌ Deployment failed!"
+            exit 1
+          fi
