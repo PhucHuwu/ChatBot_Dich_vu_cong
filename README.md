@@ -65,13 +65,13 @@ This chatbot brings powerful AI capabilities to help citizens access public serv
 ┌──────────────────────────────────┐
 │         FastAPI Backend          │
 │  ┌──────────┐      ┌──────────┐  │
-│  │   Cache  │◄────►│   RAG    │  │
+│  │  Cache   │◄────►│   RAG    │  │
 │  └──────────┘      └────┬─────┘  │
 │                         │        │
 │  ┌──────────────────────┼─────┐  │
 │  │  FAISS Vector Store  │     │  │
 │  │  ┌─────────┐  ┌──────▼───┐ │  │
-│  │  │ Index   │  │ Metadata │ │  │
+│  │  │  Index  │  │ Metadata │ │  │
 │  │  └─────────┘  └──────────┘ │  │
 │  └────────────────────────────┘  │
 │                          │       │
