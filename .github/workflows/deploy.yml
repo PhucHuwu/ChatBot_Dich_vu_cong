@@ -27,8 +27,9 @@ jobs:
           SERVER_IP: ${{ secrets.SERVER_IP }}
           SERVER_USER: ${{ secrets.SERVER_USER }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          GITHUB_REPO: ${{ github.repository }}
         run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP << 'ENDSSH'
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP << ENDSSH
             set -e
             
             echo "================================================"
@@ -49,43 +50,46 @@ jobs:
             # Clone hoặc pull code
             if [ ! -d ".git" ]; then
               echo "📥 Cloning repository..."
-              git clone https://github.com/${{ github.repository }} .
+              git clone https://github.com/PhucHuwu/ChatBot_Dich_vu_cong.git .
             else
               echo "📥 Pulling latest code..."
               git fetch origin
               git reset --hard origin/main
             fi
             
-            # Tạo .env file từ secrets
-            echo "🔐 Creating .env file..."
-            cat > .env << EOF
-          APP_ENV=production
-          DEBUG=False
-          HOST=0.0.0.0
-          PORT=8000
-          WORKERS=2
-          BASE_PATH=
-          ALLOWED_ORIGINS=*
-          GROQ_API_KEY=$GROQ_API_KEY
-          LLM_MODEL=openai/gpt-oss-120b
-          LLM_TEMPERATURE=1
-          LLM_MAX_TOKENS=8192
-          LLM_TIMEOUT=60
-          LLM_REASONING_EFFORT=medium
-          LLM_STREAM=True
-          EMBEDDING_MODEL=sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
-          EMBEDDING_BATCH_SIZE=32
-          EMBEDDING_DEVICE=cpu
-          SIMILARITY_THRESHOLD=1.2
-          TOP_K_DEFAULT=8
-          ENABLE_CACHE=True
-          CACHE_MAX_SIZE=500
-          CACHE_TTL=3600
-          LOG_LEVEL=INFO
-          ENABLE_JSON_LOGGING=False
-          EXPOSE_DOCS=False
-          MAX_QUERY_LENGTH=1000
-          EOF
+            # Kiểm tra và tạo .env file nếu chưa có
+            if [ ! -f .env ]; then
+              echo "🔐 Creating .env file from template..."
+              echo "APP_ENV=production" > .env
+              echo "DEBUG=False" >> .env
+              echo "HOST=0.0.0.0" >> .env
+              echo "PORT=8000" >> .env
+              echo "WORKERS=2" >> .env
+              echo "BASE_PATH=" >> .env
+              echo "ALLOWED_ORIGINS=*" >> .env
+              echo "GROQ_API_KEY=REPLACE_WITH_YOUR_API_KEY" >> .env
+              echo "LLM_MODEL=openai/gpt-oss-120b" >> .env
+              echo "LLM_TEMPERATURE=1" >> .env
+              echo "LLM_MAX_TOKENS=8192" >> .env
+              echo "LLM_TIMEOUT=60" >> .env
+              echo "LLM_REASONING_EFFORT=medium" >> .env
+              echo "LLM_STREAM=True" >> .env
+              echo "EMBEDDING_MODEL=sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2" >> .env
+              echo "EMBEDDING_BATCH_SIZE=32" >> .env
+              echo "EMBEDDING_DEVICE=cpu" >> .env
+              echo "SIMILARITY_THRESHOLD=1.2" >> .env
+              echo "TOP_K_DEFAULT=8" >> .env
+              echo "ENABLE_CACHE=True" >> .env
+              echo "CACHE_MAX_SIZE=500" >> .env
+              echo "CACHE_TTL=3600" >> .env
+              echo "LOG_LEVEL=INFO" >> .env
+              echo "ENABLE_JSON_LOGGING=False" >> .env
+              echo "EXPOSE_DOCS=False" >> .env
+              echo "MAX_QUERY_LENGTH=1000" >> .env
+              echo "⚠️  WARNING: Please update GROQ_API_KEY in .env file manually!"
+            else
+              echo "✅ .env file already exists, keeping existing configuration"
+            fi
             
             # Stop và xóa containers cũ hoàn toàn
             echo "🛑 Stopping and removing old containers..."
