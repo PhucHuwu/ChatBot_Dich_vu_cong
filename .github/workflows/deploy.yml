@@ -122,7 +122,7 @@ jobs:
             echo "⚠️  First deployment may take 2-3 minutes to build index and load models"
             sleep 30
             
-            MAX_RETRIES=60
+            MAX_RETRIES=600
             RETRY_COUNT=0
             while [ \$RETRY_COUNT -lt \$MAX_RETRIES ]; do
               if curl -f http://localhost:8000/health > /dev/null 2>&1; then
