@@ -28,12 +28,10 @@ class Settings:
             if custom_origins:
                 return [origin.strip() for origin in custom_origins.split(",")]
             return [
-                "https://yourdomain.gov.vn",
                 "https://chatbot-dichvucong.vercel.app"
             ]
         elif env == "staging":
             return [
-                "https://staging.yourdomain.gov.vn",
                 "https://chatbot-dichvucong.vercel.app",
                 "http://localhost:3000"
             ]
