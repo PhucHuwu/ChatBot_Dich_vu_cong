@@ -10,6 +10,7 @@ from chunking import chunk_faq, chunk_guide
 from embedding import embedding, get_device_info
 from llm_client import get_llm_client
 from reranker import rerank_documents
+from hybrid_search import build_bm25_index, save_bm25_index, hybrid_search
 from config import settings
 
 load_dotenv()
@@ -47,15 +48,21 @@ def build_index(batch_size: Optional[int] = None) -> None:
     index = faiss.IndexFlatL2(embeddings.shape[1])
     index.add(embeddings)
 
-    logger.info(f"Saving index to {settings.INDEX_PATH}")
+    logger.info(f"Saving FAISS index to {settings.INDEX_PATH}")
     faiss.write_index(index, settings.INDEX_PATH)
 
     with open(settings.METADATA_PATH, "wb") as f:
         pickle.dump(metadatas, f)
 
-    logger.info(f"Successfully created index with {embeddings.shape[0]} embeddings")
+    logger.info(f"Successfully created FAISS index with {embeddings.shape[0]} embeddings")
     logger.info(f"Index dimension: {embeddings.shape[1]}")
     logger.info(f"Similarity threshold: {settings.SIMILARITY_THRESHOLD}")
+
+    if settings.ENABLE_HYBRID_SEARCH:
+        logger.info("Building BM25 index for hybrid search...")
+        bm25, corpus_tokens, bm25_metadata = build_bm25_index(docs)
+        save_bm25_index(bm25, corpus_tokens, bm25_metadata, settings.BM25_INDEX_PATH)
+        logger.info(f"BM25 index saved to {settings.BM25_INDEX_PATH}")
 
 
 def search_rag(query: str, k: Optional[int] = None) -> List[Dict]:
@@ -91,25 +98,38 @@ def search_rag(query: str, k: Optional[int] = None) -> List[Dict]:
 
     threshold = settings.SIMILARITY_THRESHOLD
     contexts = []
+    vector_results = []
 
     for dist, idx in zip(D[0], I[0]):
+        doc = metadata[idx].copy()
+        doc["faiss_distance"] = float(dist)
+        vector_results.append((doc, dist))
+        
         if dist < threshold:
-            doc = metadata[idx].copy()
-            doc["faiss_distance"] = float(dist)
             contexts.append(doc)
             logger.debug(f"Context found with distance: {dist:.4f}")
 
     if not contexts:
         logger.warning(f"No contexts found below threshold {threshold}, using fallback")
         fallback_k = min(settings.TOP_K_FALLBACK, initial_k)
-        contexts = []
-        for i, dist in zip(I[0][:fallback_k], D[0][:fallback_k]):
-            doc = metadata[i].copy()
-            doc["faiss_distance"] = float(dist)
-            contexts.append(doc)
+        contexts = [doc for doc, _ in vector_results[:fallback_k]]
         logger.info(f"Fallback: returning top {len(contexts)} contexts")
     else:
         logger.info(f"Found {len(contexts)} contexts below threshold {threshold}")
+
+    if settings.ENABLE_HYBRID_SEARCH:
+        hybrid_start = time.time()
+        contexts_with_scores = [(ctx, ctx.get("faiss_distance", 0)) for ctx in contexts]
+        contexts = hybrid_search(
+            query=query,
+            vector_results=contexts_with_scores,
+            k=k,
+            fusion_method=settings.HYBRID_FUSION_METHOD,
+            bm25_weight=settings.BM25_WEIGHT,
+            vector_weight=settings.VECTOR_WEIGHT
+        )
+        hybrid_time = time.time() - hybrid_start
+        logger.info(f"Hybrid search completed in {hybrid_time:.3f}s")
 
     if settings.ENABLE_RERANKING and contexts:
         rerank_start = time.time()

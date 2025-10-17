@@ -64,6 +64,13 @@ class Settings:
     RERANKING_TOP_K: int = int(os.getenv("RERANKING_TOP_K", "5"))
     INITIAL_RETRIEVAL_MULTIPLIER: int = int(os.getenv("INITIAL_RETRIEVAL_MULTIPLIER", "3"))
 
+    ENABLE_HYBRID_SEARCH: bool = os.getenv("ENABLE_HYBRID_SEARCH", "True").lower() == "true"
+    HYBRID_FUSION_METHOD: str = os.getenv("HYBRID_FUSION_METHOD", "rrf")
+    BM25_WEIGHT: float = float(os.getenv("BM25_WEIGHT", "0.5"))
+    VECTOR_WEIGHT: float = float(os.getenv("VECTOR_WEIGHT", "0.5"))
+    BM25_RETRIEVAL_MULTIPLIER: int = int(os.getenv("BM25_RETRIEVAL_MULTIPLIER", "2"))
+    BM25_INDEX_PATH: str = os.getenv("BM25_INDEX_PATH", "embeddings/bm25_index.pkl")
+
     INDEX_PATH: str = os.getenv("INDEX_PATH", "embeddings/faiss_index.bin")
     METADATA_PATH: str = os.getenv("METADATA_PATH", "embeddings/metadata.pkl")
     EMBEDDINGS_DIR: str = "embeddings"
