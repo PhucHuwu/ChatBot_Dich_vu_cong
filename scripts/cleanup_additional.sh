@@ -58,6 +58,42 @@ sudo find /var/log -type f -name "*.old" -delete
 echo "   ✓ Log files cũ đã được xóa"
 echo ""
 
+# 5a. Dọn dẹp các log files lớn
+echo "📊 Dọn dẹp log files lớn..."
+# Truncate btmp (failed login attempts) - giữ file nhưng xóa nội dung
+if [ -f "/var/log/btmp" ]; then
+    BTMP_SIZE=$(du -h /var/log/btmp | cut -f1)
+    echo "   btmp hiện tại: $BTMP_SIZE"
+    sudo truncate -s 0 /var/log/btmp
+    echo "   ✓ btmp đã được truncate"
+fi
+
+# Rotate auth.log nếu quá lớn (>50MB)
+if [ -f "/var/log/auth.log" ]; then
+    AUTH_SIZE=$(stat -f%z /var/log/auth.log 2>/dev/null || stat -c%s /var/log/auth.log 2>/dev/null)
+    if [ "$AUTH_SIZE" -gt 52428800 ]; then
+        echo "   auth.log: $(du -h /var/log/auth.log | cut -f1) - đang rotate..."
+        sudo logrotate -f /etc/logrotate.d/rsyslog
+        echo "   ✓ auth.log đã được rotate"
+    else
+        echo "   auth.log: OK (< 50MB)"
+    fi
+fi
+
+# Dọn MongoDB logs nếu có
+if [ -d "/var/log/mongodb" ]; then
+    MONGO_LOG_SIZE=$(du -sh /var/log/mongodb | cut -f1)
+    echo "   MongoDB logs: $MONGO_LOG_SIZE"
+    read -p "   Xóa MongoDB logs? (yes/no): " REMOVE_MONGO_LOGS
+    if [ "$REMOVE_MONGO_LOGS" = "yes" ]; then
+        sudo rm -rf /var/log/mongodb/*
+        echo "   ✓ MongoDB logs đã được xóa"
+    else
+        echo "   ⊘ Bỏ qua MongoDB logs"
+    fi
+fi
+echo ""
+
 # 6. Dọn dẹp Python cache trong project
 echo "🐍 Dọn dẹp Python cache..."
 if [ -d "$HOME/ChatBot_Dich_vu_cong" ]; then
@@ -92,7 +128,70 @@ else
 fi
 echo ""
 
-# 8. Tối ưu journald config để giới hạn log size
+# 8. Kiểm tra và xóa MongoDB nếu không sử dụng
+echo "🗄️  Kiểm tra MongoDB..."
+if systemctl is-active --quiet mongod 2>/dev/null; then
+    echo "   ⚠️  MongoDB đang chạy"
+    echo "   Nếu chatbot KHÔNG sử dụng MongoDB, bạn có thể xóa để giải phóng ~600MB"
+    read -p "   Dừng và xóa MongoDB? (yes/no): " REMOVE_MONGO
+    if [ "$REMOVE_MONGO" = "yes" ]; then
+        sudo systemctl stop mongod
+        sudo systemctl disable mongod
+        sudo apt-get remove -y mongodb mongodb-org mongodb-org-server 2>/dev/null || sudo apt-get remove -y mongodb-* 2>/dev/null || true
+        sudo rm -rf /var/lib/mongodb
+        sudo rm -rf /var/log/mongodb
+        sudo apt-get autoremove -y
+        echo "   ✓ MongoDB đã được xóa"
+    else
+        echo "   ⊘ Giữ MongoDB"
+    fi
+elif dpkg -l | grep -q mongodb; then
+    echo "   MongoDB đã cài nhưng không chạy"
+    MONGO_SIZE=$(du -sh /var/lib/mongodb 2>/dev/null | cut -f1 || echo "0")
+    echo "   Dung lượng data: $MONGO_SIZE"
+    read -p "   Xóa MongoDB? (yes/no): " REMOVE_MONGO
+    if [ "$REMOVE_MONGO" = "yes" ]; then
+        sudo apt-get remove -y mongodb mongodb-org mongodb-org-server 2>/dev/null || sudo apt-get remove -y mongodb-* 2>/dev/null || true
+        sudo rm -rf /var/lib/mongodb
+        sudo rm -rf /var/log/mongodb
+        sudo apt-get autoremove -y
+        echo "   ✓ MongoDB đã được xóa"
+    else
+        echo "   ⊘ Giữ MongoDB"
+    fi
+else
+    echo "   ℹ️  MongoDB không cài đặt"
+fi
+echo ""
+
+# 9. Xóa snapd nếu không sử dụng snap packages
+echo "📦 Kiểm tra Snapd..."
+if dpkg -l | grep -q snapd; then
+    SNAP_COUNT=$(snap list 2>/dev/null | wc -l || echo "0")
+    SNAPD_SIZE=$(du -sh /var/lib/snapd 2>/dev/null | cut -f1 || echo "0")
+    echo "   Snap packages: $((SNAP_COUNT - 1))"
+    echo "   Dung lượng: $SNAPD_SIZE"
+    if [ "$SNAP_COUNT" -le 1 ]; then
+        read -p "   Không có snap packages nào. Xóa snapd? (yes/no): " REMOVE_SNAP
+        if [ "$REMOVE_SNAP" = "yes" ]; then
+            sudo systemctl stop snapd
+            sudo systemctl disable snapd
+            sudo apt-get remove -y snapd
+            sudo rm -rf /var/lib/snapd
+            sudo apt-get autoremove -y
+            echo "   ✓ Snapd đã được xóa"
+        else
+            echo "   ⊘ Giữ snapd"
+        fi
+    else
+        echo "   ℹ️  Đang sử dụng snap packages, giữ snapd"
+    fi
+else
+    echo "   ℹ️  Snapd không cài đặt"
+fi
+echo ""
+
+# 10. Tối ưu journald config để giới hạn log size
 echo "⚙️  Tối ưu journald config..."
 JOURNALD_CONF="/etc/systemd/journald.conf"
 if [ -f "$JOURNALD_CONF" ]; then
@@ -114,6 +213,9 @@ echo ""
 echo "💡 Khuyến nghị thêm:"
 echo "   1. Thiết lập logrotate cho application logs"
 echo "   2. Định kỳ chạy: docker system prune -a (1 tuần/lần)"
-echo "   3. Monitoring disk usage với script: ./scripts/analyze_disk_usage.sh"
-echo "   4. Cân nhắc tăng dung lượng disk nếu cần thiết"
+echo "   3. Monitoring disk usage: ./scripts/analyze_disk_usage.sh"
+echo "   4. Truncate btmp định kỳ: sudo truncate -s 0 /var/log/btmp"
+echo "   5. Nếu dung lượng vẫn không đủ, cân nhắc nâng cấp VPS"
+echo ""
+echo "⚡ Ước tính đã giải phóng: ~500MB - 1.5GB"
 echo ""
