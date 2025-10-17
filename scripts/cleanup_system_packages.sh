@@ -28,112 +28,190 @@ echo ""
 # DANH SÁCH PACKAGES CÓ THỂ XÓA
 # ==========================================
 
-# 1. MongoDB - Dự án KHÔNG sử dụng MongoDB
-MONGODB_PACKAGES=(
-    mongodb-database-tools
-    mongodb-mongosh
-    mongodb-org-database-tools-extra
-    mongodb-org-database
-    mongodb-org-mongos
-    mongodb-org-server
-    mongodb-org-shell
-    mongodb-org-tools
-    mongodb-org
+# 1. Cloud/VM tools - Không cần cho bare metal hoặc production server
+CLOUD_PACKAGES=(
+    cloud-init
+    cloud-guest-utils
+    cloud-initramfs-copymods
+    cloud-initramfs-dyn-netconf
+    open-vm-tools
 )
 
-# 2. LXD - Container system không sử dụng
-LXD_PACKAGES=(
-    lxd-agent-loader
-    lxd-installer
+# 2. Development headers & tools - Build trong Docker, không cần trên host
+DEV_PACKAGES=(
+    linux-headers-6.8.0-31-generic
+    linux-headers-6.8.0-31
+    linux-headers-generic
+    linux-headers-virtual
+    linux-libc-dev
+    libc-dev-bin
+    libc-devtools
+    libc6-dev
+    libcrypt-dev
+    libexpat1-dev
+    libpython3-dev
+    libpython3.12-dev
+    python3-dev
+    python3.12-dev
+    systemd-dev
+    libssl-dev
+    libsasl2-dev
+    librdkafka-dev
+    liblz4-dev
+    libzstd-dev
+    manpages-dev
+    binutils
+    binutils-common
+    binutils-x86-64-linux-gnu
 )
 
-# 3. Landscape - Canonical management tool
-LANDSCAPE_PACKAGES=(
-    landscape-common
+# 3. Desktop/GUI/Font packages - Server không cần
+GUI_PACKAGES=(
+    fonts-dejavu-core
+    fonts-dejavu-mono
+    fonts-ubuntu-console
+    fontconfig-config
+    libfontconfig1
+    libfreetype6
+    libx11-6
+    libx11-data
+    libxau6
+    libxcb1
+    libxdmcp6
+    libxext6
+    libxpm4
+    libxmuu1
+    xauth
+    xdg-user-dirs
+    xkb-data
 )
 
-# 4. FTP clients - Không cần
-FTP_PACKAGES=(
-    ftp
-    tnftp
+# 4. Image processing libraries - Không cần trên server
+IMAGE_LIBS=(
+    libgd3
+    libjpeg-turbo8
+    libjpeg8
+    libjbig0
+    libpng16-16t64
+    libtiff6
+    libwebp7
+    libsharpyuv0
+    libheif1
+    libheif-plugin-aomdec
+    libheif-plugin-aomenc
+    libheif-plugin-libde265
+    libde265-0
+    libaom3
 )
 
-# 5. Telnet - Không bảo mật, không cần
-TELNET_PACKAGES=(
-    telnet
-    inetutils-telnet
+# 5. Multimedia - Không cần
+MULTIMEDIA_PACKAGES=(
+    libgstreamer1.0-0
 )
 
-# 6. Apport - Crash reporting
-APPORT_PACKAGES=(
-    apport
-    apport-symptoms
-    apport-core-dump-handler
+# 6. Hardware tools - Không cần cho server ảo
+HARDWARE_TOOLS=(
+    bcache-tools
+    dmidecode
+    efibootmgr
+    hdparm
+    lshw
+    pciutils
+    pci.ids
+    usbutils
+    usb.ids
+    sg3-utils
+    sg3-utils-udev
 )
 
-# 7. Plymouth - Boot splash screen
-PLYMOUTH_PACKAGES=(
-    plymouth
-    plymouth-theme-ubuntu-text
+# 7. Filesystem tools không dùng
+FILESYSTEM_TOOLS=(
+    btrfs-progs
+    dosfstools
+    ntfs-3g
+    xfsprogs
+    gdisk
+    gpart
 )
 
-# 8. Snap - Nếu không dùng snap packages
-SNAP_PACKAGES=(
-    snapd
+# 8. Advanced storage - Không sử dụng LVM/RAID/multipath
+STORAGE_TOOLS=(
+    lvm2
+    dmsetup
+    dmeventd
+    libdevmapper-event1.02.1
+    liblvm2cmd2.03
+    thin-provisioning-tools
+    multipath-tools
+    mdadm
+    kpartx
 )
 
-# 9. Update notifier - Không cần trên production server
-UPDATE_NOTIFIER_PACKAGES=(
-    update-notifier-common
-    ubuntu-release-upgrader-core
-    update-manager-core
+# 9. iSCSI - Không sử dụng
+ISCSI_PACKAGES=(
+    open-iscsi
+    libisns0t64
+    libopeniscsiusr
 )
 
-# 10. ModemManager - Không cần modem trên server
-MODEM_PACKAGES=(
-    modemmanager
-    libmbim-glib4
-    libmbim-proxy
-    libmbim-utils
-    libqmi-glib5
-    libqmi-proxy
-    libqmi-utils
+# 10. Network tools ít dùng
+NETWORK_TOOLS=(
+    bind9-dnsutils
+    bind9-host
+    bind9-libs
+    tcpdump
+    net-tools
+    netcat-openbsd
+    traceroute
+    iputils-tracepath
 )
 
-# 11. Development tools - Chỉ cần nếu build packages trên host
-# Tuy nhiên, Docker container đã có build tools, host không cần
-# CẢNH BÁO: Chỉ xóa nếu chắc chắn không build gì trên host
-DEV_TOOLS_PACKAGES=(
-    build-essential
-    gcc-13
-    g++-13
-    make
-    dpkg-dev
-    Bỏ comment nếu muốn xóa
+# 11. Documentation & man pages
+DOC_PACKAGES=(
+    man-db
+    manpages
+    info
+    groff-base
 )
 
-# 12. Byobu, Screen, TMux - Terminal multiplexers (giữ lại nếu dùng)
-# Uncomment để xóa nếu không dùng
-TERMINAL_PACKAGES=(
-    byobu
-    screen  
-    tmux
+# 12. Debugging/monitoring tools không cần thiết
+DEBUG_TOOLS=(
+    strace
+    trace-cmd
+    sosreport
 )
 
-# 13. Các tools ít dùng
+# 13. Update/upgrade tools - Quản lý manual
+UPDATE_PACKAGES=(
+    unattended-upgrades
+    ubuntu-pro-client
+    ubuntu-pro-client-l10n
+    command-not-found
+)
+
+# 14. PolicyKit/PackageKit - Không cần trên server
+POLICY_PACKAGES=(
+    polkitd
+    packagekit
+    packagekit-tools
+    libpolkit-agent-1-0
+    libpolkit-gobject-1-0
+    libpackagekit-glib2-18
+)
+
+# 15. Misc utilities không cần thiết
 MISC_PACKAGES=(
-    pastebinit
-    needrestart
-    deborphan
-    bc
-    ed
-    mtr-tiny
-    bolt
-    fwupd
-    fwupd-signed
-    pollinate
-    friendly-recovery
-    motd-news-config
+    localepurge
+    appstream
+    iso-codes
+    shared-mime-info
+    javascript-common
+    libjs-jquery
+    libjs-sphinxdoc
+    libjs-underscore
+    xml-core
+    sgml-base
+    media-types
 )
 
 # ==========================================
@@ -142,41 +220,56 @@ MISC_PACKAGES=(
 
 echo "Các packages sẽ bị XÓA:"
 echo ""
-echo "✓ MongoDB (không sử dụng): ${#MONGODB_PACKAGES[@]} packages"
-echo "✓ LXD containers: ${#LXD_PACKAGES[@]} packages"
-echo "✓ Landscape: ${#LANDSCAPE_PACKAGES[@]} packages"
-echo "✓ FTP clients: ${#FTP_PACKAGES[@]} packages"
-echo "✓ Telnet: ${#TELNET_PACKAGES[@]} packages"
-echo "✓ Apport (crash reporting): ${#APPORT_PACKAGES[@]} packages"
-echo "✓ Plymouth (boot splash): ${#PLYMOUTH_PACKAGES[@]} packages"
-echo "✓ Snapd: ${#SNAP_PACKAGES[@]} packages"
-echo "✓ Update notifiers: ${#UPDATE_NOTIFIER_PACKAGES[@]} packages"
-echo "✓ ModemManager: ${#MODEM_PACKAGES[@]} packages"
-echo "✓ Misc unused tools: ${#MISC_PACKAGES[@]} packages"
+echo "✓ Cloud/VM tools: ${#CLOUD_PACKAGES[@]} packages"
+echo "✓ Development headers/tools: ${#DEV_PACKAGES[@]} packages"
+echo "✓ Desktop/GUI/Fonts: ${#GUI_PACKAGES[@]} packages"
+echo "✓ Image processing libs: ${#IMAGE_LIBS[@]} packages"
+echo "✓ Multimedia: ${#MULTIMEDIA_PACKAGES[@]} packages"
+echo "✓ Hardware tools: ${#HARDWARE_TOOLS[@]} packages"
+echo "✓ Filesystem tools: ${#FILESYSTEM_TOOLS[@]} packages"
+echo "✓ Storage tools (LVM/RAID): ${#STORAGE_TOOLS[@]} packages"
+echo "✓ iSCSI: ${#ISCSI_PACKAGES[@]} packages"
+echo "✓ Network tools: ${#NETWORK_TOOLS[@]} packages"
+echo "✓ Documentation: ${#DOC_PACKAGES[@]} packages"
+echo "✓ Debug tools: ${#DEBUG_TOOLS[@]} packages"
+echo "✓ Update tools: ${#UPDATE_PACKAGES[@]} packages"
+echo "✓ PolicyKit/PackageKit: ${#POLICY_PACKAGES[@]} packages"
+echo "✓ Misc utilities: ${#MISC_PACKAGES[@]} packages"
 echo ""
 
 # Tổng hợp tất cả packages cần xóa
 ALL_REMOVE_PACKAGES=(
-    "${MONGODB_PACKAGES[@]}"
-    "${LXD_PACKAGES[@]}"
-    "${LANDSCAPE_PACKAGES[@]}"
-    "${FTP_PACKAGES[@]}"
-    "${TELNET_PACKAGES[@]}"
-    "${APPORT_PACKAGES[@]}"
-    "${PLYMOUTH_PACKAGES[@]}"
-    "${SNAP_PACKAGES[@]}"
-    "${UPDATE_NOTIFIER_PACKAGES[@]}"
-    "${MODEM_PACKAGES[@]}"
+    "${CLOUD_PACKAGES[@]}"
+    "${DEV_PACKAGES[@]}"
+    "${GUI_PACKAGES[@]}"
+    "${IMAGE_LIBS[@]}"
+    "${MULTIMEDIA_PACKAGES[@]}"
+    "${HARDWARE_TOOLS[@]}"
+    "${FILESYSTEM_TOOLS[@]}"
+    "${STORAGE_TOOLS[@]}"
+    "${ISCSI_PACKAGES[@]}"
+    "${NETWORK_TOOLS[@]}"
+    "${DOC_PACKAGES[@]}"
+    "${DEBUG_TOOLS[@]}"
+    "${UPDATE_PACKAGES[@]}"
+    "${POLICY_PACKAGES[@]}"
     "${MISC_PACKAGES[@]}"
-    "${DEV_TOOLS_PACKAGES[@]}"
-    "${TERMINAL_PACKAGES[@]}"
 )
 
 echo "Tổng cộng: ${#ALL_REMOVE_PACKAGES[@]} packages"
 echo ""
 
 # Ước tính dung lượng giải phóng
-echo "📊 Ước tính dung lượng giải phóng: ~500MB - 1GB"
+echo "📊 Ước tính dung lượng giải phóng: ~1GB - 2GB"
+echo ""
+echo "⚠️  LƯU Ý: Các packages QUAN TRỌNG sau sẽ KHÔNG bị xóa:"
+echo "   • Docker (docker-ce, docker-compose-plugin, etc.)"
+echo "   • Nginx & SSL (nginx, certbot, python3-certbot-nginx)"
+echo "   • SSH (openssh-server, openssh-client)"
+echo "   • Git (git)"
+echo "   • Python3 & pip (cần cho scripts và certbot)"
+echo "   • Curl, wget (health checks & downloads)"
+echo "   • Systemd & core utilities"
 echo ""
 
 read -p "⚠️  Bạn có chắc chắn muốn tiếp tục? (yes/no): " CONFIRM
@@ -220,25 +313,21 @@ remove_packages() {
 }
 
 # Xóa từng nhóm
-remove_packages "MongoDB" "${MONGODB_PACKAGES[@]}"
-remove_packages "LXD" "${LXD_PACKAGES[@]}"
-remove_packages "Landscape" "${LANDSCAPE_PACKAGES[@]}"
-remove_packages "FTP" "${FTP_PACKAGES[@]}"
-remove_packages "Telnet" "${TELNET_PACKAGES[@]}"
-remove_packages "Apport" "${APPORT_PACKAGES[@]}"
-remove_packages "Plymouth" "${PLYMOUTH_PACKAGES[@]}"
-remove_packages "Snapd" "${SNAP_PACKAGES[@]}"
-remove_packages "Update Notifier" "${UPDATE_NOTIFIER_PACKAGES[@]}"
-remove_packages "ModemManager" "${MODEM_PACKAGES[@]}"
-remove_packages "Misc" "${MISC_PACKAGES[@]}"
-
-if [ ${#DEV_TOOLS_PACKAGES[@]} -gt 0 ]; then
-    remove_packages "Dev Tools" "${DEV_TOOLS_PACKAGES[@]}"
-fi
-
-if [ ${#TERMINAL_PACKAGES[@]} -gt 0 ]; then
-    remove_packages "Terminal Tools" "${TERMINAL_PACKAGES[@]}"
-fi
+remove_packages "Cloud/VM Tools" "${CLOUD_PACKAGES[@]}"
+remove_packages "Development Headers/Tools" "${DEV_PACKAGES[@]}"
+remove_packages "Desktop/GUI/Fonts" "${GUI_PACKAGES[@]}"
+remove_packages "Image Processing Libraries" "${IMAGE_LIBS[@]}"
+remove_packages "Multimedia" "${MULTIMEDIA_PACKAGES[@]}"
+remove_packages "Hardware Tools" "${HARDWARE_TOOLS[@]}"
+remove_packages "Filesystem Tools" "${FILESYSTEM_TOOLS[@]}"
+remove_packages "Storage Tools (LVM/RAID)" "${STORAGE_TOOLS[@]}"
+remove_packages "iSCSI" "${ISCSI_PACKAGES[@]}"
+remove_packages "Network Tools" "${NETWORK_TOOLS[@]}"
+remove_packages "Documentation" "${DOC_PACKAGES[@]}"
+remove_packages "Debug Tools" "${DEBUG_TOOLS[@]}"
+remove_packages "Update Tools" "${UPDATE_PACKAGES[@]}"
+remove_packages "PolicyKit/PackageKit" "${POLICY_PACKAGES[@]}"
+remove_packages "Misc Utilities" "${MISC_PACKAGES[@]}"
 
 echo ""
 echo "🧹 Dọn dẹp packages không sử dụng..."
