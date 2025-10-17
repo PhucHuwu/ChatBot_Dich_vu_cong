@@ -56,6 +56,14 @@ class Settings:
     EMBEDDING_BATCH_SIZE: int = int(os.getenv("EMBEDDING_BATCH_SIZE", "32"))
     EMBEDDING_DEVICE: str = os.getenv("EMBEDDING_DEVICE", "auto")
 
+    ENABLE_RERANKING: bool = os.getenv("ENABLE_RERANKING", "True").lower() == "true"
+    RERANKING_MODEL: str = os.getenv(
+        "RERANKING_MODEL",
+        "cross-encoder/ms-marco-MiniLM-L-6-v2"
+    )
+    RERANKING_TOP_K: int = int(os.getenv("RERANKING_TOP_K", "5"))
+    INITIAL_RETRIEVAL_MULTIPLIER: int = int(os.getenv("INITIAL_RETRIEVAL_MULTIPLIER", "3"))
+
     INDEX_PATH: str = os.getenv("INDEX_PATH", "embeddings/faiss_index.bin")
     METADATA_PATH: str = os.getenv("METADATA_PATH", "embeddings/metadata.pkl")
     EMBEDDINGS_DIR: str = "embeddings"

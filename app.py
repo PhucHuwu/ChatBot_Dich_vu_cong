@@ -11,6 +11,7 @@ import time
 
 from rag import get_answer, build_index
 from embedding import get_device_info
+from reranker import get_reranker_info
 from config import settings
 from logger_utils import setup_logging, LoggingMiddleware, get_trace_id
 from cache import get_cache
@@ -86,6 +87,7 @@ class ChatResponse(BaseModel):
 class SystemStatusResponse(BaseModel):
     status: str
     device_info: dict
+    reranker_info: Optional[dict] = None
     indexing_available: bool
     cache_stats: Optional[dict] = None
     message: str
@@ -159,9 +161,12 @@ async def get_system_status(request: Request):
         if settings.ENABLE_CACHE:
             cache_stats = cache.get_stats()
 
+        reranker_info = get_reranker_info()
+
         return SystemStatusResponse(
             status="active",
             device_info=device_info,
+            reranker_info=reranker_info,
             indexing_available=index_files_exist,
             cache_stats=cache_stats,
             message="Hệ thống chatbot hoạt động bình thường",

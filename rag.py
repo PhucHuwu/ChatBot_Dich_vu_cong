@@ -9,6 +9,7 @@ import pickle
 from chunking import chunk_faq, chunk_guide
 from embedding import embedding, get_device_info
 from llm_client import get_llm_client
+from reranker import rerank_documents
 from config import settings
 
 load_dotenv()
@@ -66,7 +67,13 @@ def search_rag(query: str, k: Optional[int] = None) -> List[Dict]:
     start_time = time.time()
 
     query = query.strip().lower()
-    logger.debug(f"Searching for: '{query[:100]}...' with k={k}")
+    
+    if settings.ENABLE_RERANKING:
+        initial_k = k * settings.INITIAL_RETRIEVAL_MULTIPLIER
+        logger.debug(f"Searching for: '{query[:100]}...' with initial_k={initial_k} (will rerank to top {k})")
+    else:
+        initial_k = k
+        logger.debug(f"Searching for: '{query[:100]}...' with k={k}")
 
     index = faiss.read_index(settings.INDEX_PATH)
     with open(settings.METADATA_PATH, "rb") as f:
@@ -77,7 +84,7 @@ def search_rag(query: str, k: Optional[int] = None) -> List[Dict]:
         logger.error("Failed to create query embedding")
         return []
 
-    D, I = index.search(q_emb, k)
+    D, I = index.search(q_emb, initial_k)
 
     search_time = time.time() - start_time
     logger.debug(f"FAISS search completed in {search_time:.3f}s")
@@ -87,16 +94,30 @@ def search_rag(query: str, k: Optional[int] = None) -> List[Dict]:
 
     for dist, idx in zip(D[0], I[0]):
         if dist < threshold:
-            contexts.append(metadata[idx])
+            doc = metadata[idx].copy()
+            doc["faiss_distance"] = float(dist)
+            contexts.append(doc)
             logger.debug(f"Context found with distance: {dist:.4f}")
 
     if not contexts:
         logger.warning(f"No contexts found below threshold {threshold}, using fallback")
-        fallback_k = min(settings.TOP_K_FALLBACK, k)
-        contexts = [metadata[i] for i in I[0][:fallback_k]]
+        fallback_k = min(settings.TOP_K_FALLBACK, initial_k)
+        contexts = []
+        for i, dist in zip(I[0][:fallback_k], D[0][:fallback_k]):
+            doc = metadata[i].copy()
+            doc["faiss_distance"] = float(dist)
+            contexts.append(doc)
         logger.info(f"Fallback: returning top {len(contexts)} contexts")
     else:
         logger.info(f"Found {len(contexts)} contexts below threshold {threshold}")
+
+    if settings.ENABLE_RERANKING and contexts:
+        rerank_start = time.time()
+        contexts = rerank_documents(query, contexts, top_k=k)
+        rerank_time = time.time() - rerank_start
+        logger.info(f"Re-ranking completed in {rerank_time:.3f}s")
+    else:
+        contexts = contexts[:k]
 
     return contexts
 
