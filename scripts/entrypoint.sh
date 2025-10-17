@@ -25,14 +25,27 @@ echo "✓ Data directory exists"
 # Kiểm tra embeddings directory và index files
 INDEX_PATH="${INDEX_PATH:-embeddings/faiss_index.bin}"
 METADATA_PATH="${METADATA_PATH:-embeddings/metadata.pkl}"
+BM25_INDEX_PATH="${BM25_INDEX_PATH:-embeddings/bm25_index.pkl}"
+ENABLE_HYBRID_SEARCH="${ENABLE_HYBRID_SEARCH:-True}"
 
-if [ -f "$INDEX_PATH" ] && [ -f "$METADATA_PATH" ]; then
-    echo "✓ Index files found. Skipping rebuild."
-    echo "  - Index: $INDEX_PATH"
-    echo "  - Metadata: $METADATA_PATH"
-else
-    echo "⚠ Index files not found. Building index..."
-    echo "  This may take a few minutes on first run..."
+# Kiểm tra xem cần rebuild không
+NEED_REBUILD=false
+
+if [ ! -f "$INDEX_PATH" ] || [ ! -f "$METADATA_PATH" ]; then
+    echo "⚠ FAISS index or metadata not found."
+    NEED_REBUILD=true
+fi
+
+# Kiểm tra BM25 index nếu hybrid search được bật
+if [ "$ENABLE_HYBRID_SEARCH" = "True" ] || [ "$ENABLE_HYBRID_SEARCH" = "true" ]; then
+    if [ ! -f "$BM25_INDEX_PATH" ]; then
+        echo "⚠ Hybrid search enabled but BM25 index not found."
+        NEED_REBUILD=true
+    fi
+fi
+
+if [ "$NEED_REBUILD" = true ]; then
+    echo "⚠ Index rebuild required. This may take a few minutes on first run..."
     
     # Chạy script Python để build index
     python -c "
@@ -53,6 +66,13 @@ except Exception as e:
     if [ $? -ne 0 ]; then
         echo "ERROR: Failed to build index. Check logs above."
         exit 1
+    fi
+else
+    echo "✓ All index files found. Skipping rebuild."
+    echo "  - FAISS Index: $INDEX_PATH"
+    echo "  - Metadata: $METADATA_PATH"
+    if [ "$ENABLE_HYBRID_SEARCH" = "True" ] || [ "$ENABLE_HYBRID_SEARCH" = "true" ]; then
+        echo "  - BM25 Index: $BM25_INDEX_PATH (Hybrid search enabled)"
     fi
 fi
 
