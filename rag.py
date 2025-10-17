@@ -10,7 +10,6 @@ from chunking import chunk_faq, chunk_guide
 from embedding import embedding, get_device_info
 from llm_client import get_llm_client
 from config import settings
-from context_analyzer import should_use_chat_history, is_greeting_or_smalltalk
 
 load_dotenv()
 
@@ -115,13 +114,9 @@ def get_answer(
 
     logger.info(f"Processing query: '{query[:100]}...'")
 
-    if is_greeting_or_smalltalk(query):
-        logger.info("Greeting/small talk detected → skipping RAG search")
-        contexts = []
-    else:
-        contexts = search_rag(query, k)
+    contexts = search_rag(query, k)
 
-    use_history = should_use_chat_history(query, chat_history)
+    use_history = True if chat_history else False
 
     llm_client = get_llm_client()
 
