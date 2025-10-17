@@ -27,10 +27,14 @@ class Settings:
             custom_origins = os.getenv("ALLOWED_ORIGINS", "")
             if custom_origins:
                 return [origin.strip() for origin in custom_origins.split(",")]
-            return ["https://yourdomain.gov.vn"]
+            return [
+                "https://yourdomain.gov.vn",
+                "https://chatbot-dichvucong.vercel.app"
+            ]
         elif env == "staging":
             return [
                 "https://staging.yourdomain.gov.vn",
+                "https://chatbot-dichvucong.vercel.app",
                 "http://localhost:3000"
             ]
         else:
@@ -38,7 +42,8 @@ class Settings:
                 "http://localhost:3000",
                 "http://127.0.0.1:5500",
                 "http://localhost:5500",
-                "http://localhost:8000"
+                "http://localhost:8000",
+                "https://chatbot-dichvucong.vercel.app"
             ]
 
     GROQ_API_KEY: Optional[str] = os.getenv("GROQ_API_KEY")
