@@ -50,7 +50,7 @@ ENV PATH=/root/.local/bin:$PATH
 
 # Copy source code (tối ưu layer caching)
 COPY app.py rag.py embedding.py chunking.py config.py \
-     llm_client.py logger_utils.py cache.py ./
+     llm_client.py logger_utils.py cache.py reranker.py hybrid_search.py ./
 
 # Copy dữ liệu và frontend
 COPY data/ ./data/
