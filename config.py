@@ -1,8 +1,18 @@
 import os
 from typing import Optional
+from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv()
+
+BASE_DIR = Path(__file__).resolve().parent
+
+
+def _resolve_path(path_env_var: str, default_relative: str) -> str:
+    path_value = os.getenv(path_env_var, default_relative)
+    if not os.path.isabs(path_value):
+        return str(BASE_DIR / path_value)
+    return path_value
 
 
 class Settings:
@@ -73,11 +83,11 @@ class Settings:
     BM25_WEIGHT: float = float(os.getenv("BM25_WEIGHT", "0.5"))
     VECTOR_WEIGHT: float = float(os.getenv("VECTOR_WEIGHT", "0.5"))
     BM25_RETRIEVAL_MULTIPLIER: int = int(os.getenv("BM25_RETRIEVAL_MULTIPLIER", "2"))
-    BM25_INDEX_PATH: str = os.getenv("BM25_INDEX_PATH", "embeddings/bm25_index.pkl")
+    BM25_INDEX_PATH: str = _resolve_path("BM25_INDEX_PATH", "embeddings/bm25_index.pkl")
 
-    INDEX_PATH: str = os.getenv("INDEX_PATH", "embeddings/faiss_index.bin")
-    METADATA_PATH: str = os.getenv("METADATA_PATH", "embeddings/metadata.pkl")
-    EMBEDDINGS_DIR: str = "embeddings"
+    INDEX_PATH: str = _resolve_path("INDEX_PATH", "embeddings/faiss_index.bin")
+    METADATA_PATH: str = _resolve_path("METADATA_PATH", "embeddings/metadata.pkl")
+    EMBEDDINGS_DIR: str = str(BASE_DIR / "embeddings")
 
     SIMILARITY_THRESHOLD: float = float(os.getenv("SIMILARITY_THRESHOLD", "1.2"))
 
@@ -86,9 +96,9 @@ class Settings:
 
     MAX_CONTEXTS_RESPONSE: int = int(os.getenv("MAX_CONTEXTS_RESPONSE", "5"))
 
-    DATA_DIR: str = "data"
-    FAQ_FILE: str = os.path.join(DATA_DIR, "faq.json")
-    GUIDE_FILE: str = os.path.join(DATA_DIR, "guide.json")
+    DATA_DIR: str = str(BASE_DIR / "data")
+    FAQ_FILE: str = str(BASE_DIR / "data" / "faq.json")
+    GUIDE_FILE: str = str(BASE_DIR / "data" / "guide.json")
 
     ENABLE_CACHE: bool = os.getenv("ENABLE_CACHE", "True").lower() == "true"
     CACHE_MAX_SIZE: int = int(os.getenv("CACHE_MAX_SIZE", "1000"))
