@@ -70,21 +70,26 @@ class LLMClient:
         max_tokens: Optional[int] = None
     ):
 
-        prompt = self._build_prompt(query, contexts)
-
+        context_info = self._build_context_info(contexts)
+        
+        system_content = self._get_system_prompt()
+        if context_info:
+            system_content += "\n\n" + context_info
+        
         system_message = {
             "role": "system",
-            "content": self._get_system_prompt()
+            "content": system_content
         }
 
         messages = [system_message]
 
         if use_history and chat_history:
             recent_history = chat_history[-settings.CONTEXT_WINDOW_MESSAGES:]
-            logger.info(f"Using chat history: {len(recent_history)} messages")
-            for msg in recent_history:
+            user_questions = [msg for msg in recent_history if msg.get("role") == "user"][-5:]
+            logger.info(f"Using chat history: {len(user_questions)} user questions (filtered from {len(recent_history)} total messages)")
+            for msg in user_questions:
                 messages.append({
-                    "role": msg.get("role", "user"),
+                    "role": "user",
                     "content": msg.get("content", "")
                 })
         else:
@@ -95,7 +100,7 @@ class LLMClient:
 
         messages.append({
             "role": "user",
-            "content": prompt
+            "content": query
         })
 
         return self.generate_completion_stream(
@@ -104,39 +109,38 @@ class LLMClient:
             max_tokens=max_tokens
         )
 
-    def _build_prompt(self, query: str, contexts: List[Dict]) -> str:
+    def _build_context_info(self, contexts: List[Dict]) -> str:
         if not contexts or len(contexts) == 0:
-            return f"Câu hỏi của người dùng: {query}"
+            return ""
 
-        prompt_parts = ["Dưới đây là các thông tin liên quan đến câu hỏi của người dùng:\n"]
+        context_parts = ["Dưới đây là các thông tin liên quan có thể hữu ích để trả lời câu hỏi của người dùng:\n"]
 
         for i, context in enumerate(contexts[:settings.MAX_CONTEXTS_RESPONSE], 1):
             info_type = context.get("type", "")
             text = context.get("text", "")
 
             if info_type == "faq":
-                prompt_parts.append(f"[FAQ] Nguồn {i}:\n{text}\n")
+                context_parts.append(f"[FAQ] Nguồn {i}:\n{text}\n")
             else:
                 category = context.get("category", "")
                 if category:
-                    prompt_parts.append(f"[{category}] Nguồn {i}:\n{text}\n")
+                    context_parts.append(f"[{category}] Nguồn {i}:\n{text}\n")
                 else:
-                    prompt_parts.append(f"Nguồn {i}:\n{text}\n")
+                    context_parts.append(f"Nguồn {i}:\n{text}\n")
 
             href = context.get("href", "")
             if href:
-                prompt_parts.append(f"Đường dẫn: {href}\n")
+                context_parts.append(f"Đường dẫn: {href}\n")
 
-            prompt_parts.append("---\n")
+            context_parts.append("---\n")
 
-        prompt_parts.append(f"\nCâu hỏi của người dùng: {query}\n\n")
-        prompt_parts.append(
-            "Hãy trả lời câu hỏi dựa trên các thông tin được cung cấp ở trên. "
+        context_parts.append(
+            "\nHãy sử dụng các thông tin trên để trả lời câu hỏi của người dùng. "
             "Trả lời đầy đủ, rõ ràng, dễ hiểu bằng tiếng Việt. "
             "Nếu có đường dẫn liên quan, hãy đề xuất người dùng truy cập để biết thêm chi tiết."
         )
 
-        return "".join(prompt_parts)
+        return "".join(context_parts)
 
     def _get_system_prompt(self) -> str:
         return """Bạn là trợ lý AI chuyên về Dịch vụ công Quốc gia của Việt Nam.
