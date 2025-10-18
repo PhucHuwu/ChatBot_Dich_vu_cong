@@ -7,8 +7,8 @@ def chunk_faq(faq_list):
 def chunk_guide(guide_list):
     return [
         {
-            "text": f"Tiêu đề: {item['title']}\nNội dung: {item['content']}",
-            "metadata": {"type": "policy", "category": item["category"]}
+            "text": f"Tiêu đề: {item['title']}\nNội dung: {item['content']}\nĐường dẫn: {item['href']}",
+            "metadata": {"type": "guide"}
         }
         for item in guide_list
     ]
