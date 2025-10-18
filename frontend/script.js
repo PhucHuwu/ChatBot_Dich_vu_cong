@@ -92,6 +92,9 @@ document.addEventListener("DOMContentLoaded", function () {
             }, 100);
 
             const handleConfirm = () => {
+                if (document.activeElement && confirmModalOverlay.contains(document.activeElement)) {
+                    document.activeElement.blur();
+                }
                 confirmModalOverlay.classList.remove("active");
                 confirmModalOverlay.setAttribute("aria-hidden", "true");
                 cleanup();
@@ -99,6 +102,9 @@ document.addEventListener("DOMContentLoaded", function () {
             };
 
             const handleCancel = () => {
+                if (document.activeElement && confirmModalOverlay.contains(document.activeElement)) {
+                    document.activeElement.blur();
+                }
                 confirmModalOverlay.classList.remove("active");
                 confirmModalOverlay.setAttribute("aria-hidden", "true");
                 cleanup();
@@ -1345,8 +1351,16 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function closeHelpModal() {
+        if (document.activeElement && helpModalOverlay.contains(document.activeElement)) {
+            document.activeElement.blur();
+        }
+        
         helpModalOverlay.classList.remove("active");
         helpModalOverlay.setAttribute("aria-hidden", "true");
+        
+        if (helpToggle) {
+            helpToggle.focus();
+        }
         announce("Đã đóng hướng dẫn sử dụng");
     }
 
