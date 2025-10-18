@@ -22,11 +22,12 @@ class Settings:
     @staticmethod
     def get_allowed_origins():
         env = os.getenv("APP_ENV", "development")
+        custom_origins = os.getenv("ALLOWED_ORIGINS", "")
+        
+        if custom_origins:
+            return [origin.strip() for origin in custom_origins.split(",")]
 
         if env == "production":
-            custom_origins = os.getenv("ALLOWED_ORIGINS", "")
-            if custom_origins:
-                return [origin.strip() for origin in custom_origins.split(",")]
             return [
                 "https://chatbot-dichvucong.vercel.app"
             ]
