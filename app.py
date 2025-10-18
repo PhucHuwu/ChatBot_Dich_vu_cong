@@ -101,7 +101,18 @@ class BuildIndexRequest(BaseModel):
                                       description="Batch size cho embedding")
 
 
-index_built = False
+def check_indexes_exist() -> bool:
+    faiss_exists = os.path.exists(settings.INDEX_PATH) and os.path.exists(settings.METADATA_PATH)
+    
+    if not faiss_exists:
+        return False
+    
+    if settings.ENABLE_HYBRID_SEARCH:
+        bm25_exists = os.path.exists(settings.BM25_INDEX_PATH)
+        if not bm25_exists:
+            return False
+    
+    return True
 
 
 @app.on_event("startup")
@@ -114,10 +125,10 @@ async def startup_event():
     logger.info(f"CORS origins: {settings.get_allowed_origins()}")
     logger.info("=" * 60)
 
-    if os.path.exists(settings.INDEX_PATH) and os.path.exists(settings.METADATA_PATH):
-        logger.info("FAISS index found, ready to serve")
+    if check_indexes_exist():
+        logger.info("Indexes found, ready to serve")
     else:
-        logger.warning("FAISS index not found, will build on first request")
+        logger.warning("Indexes not found, will build automatically on first request")
 
 
 @app.on_event("shutdown")
@@ -154,10 +165,7 @@ async def get_system_status(request: Request):
     try:
         device_info = get_device_info()
 
-        index_files_exist = (
-            os.path.exists(settings.INDEX_PATH) and
-            os.path.exists(settings.METADATA_PATH)
-        )
+        index_files_exist = check_indexes_exist()
 
         cache_stats = None
         if settings.ENABLE_CACHE:
@@ -189,8 +197,6 @@ async def get_system_status(request: Request):
 
 @app.post("/api/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest, req: Request):
-    global index_built
-
     trace_id = get_trace_id(req)
     start_time = time.time()
 
@@ -199,12 +205,10 @@ async def chat(request: ChatRequest, req: Request):
         logger.info(f"Chat request: '{query[:100]}...' (history: {len(request.chat_history)} msgs)",
                     extra={"trace_id": trace_id})
 
-        if not index_built:
-            if not (os.path.exists(settings.INDEX_PATH) and
-                    os.path.exists(settings.METADATA_PATH)):
-                logger.info("Building index for first time...", extra={"trace_id": trace_id})
-                build_index()
-            index_built = True
+        if not check_indexes_exist():
+            logger.info("Index not found, building index for the first time...", extra={"trace_id": trace_id})
+            build_index()
+            logger.info("Index built successfully", extra={"trace_id": trace_id})
 
         cached_result = None
         if settings.ENABLE_CACHE:
