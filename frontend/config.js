@@ -8,7 +8,7 @@ const CONFIG = {
             : "https://gazeless-jeanett-bathetic.ngrok-free.dev",
 
     ENDPOINTS: {
-        CHAT: "/api/chat",
+        CHAT_STREAM: "/api/chat/stream",
         STATUS: "/api/status",
         HEALTH: "/health",
     },

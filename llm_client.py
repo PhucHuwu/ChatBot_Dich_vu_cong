@@ -17,23 +17,24 @@ class LLMClient:
         self.client = Groq(api_key=self.api_key)
         logger.info(f"LLM Client initialized with model: {self.model}")
 
-    def generate_completion(
+
+
+    def generate_completion_stream(
         self,
         messages: List[Dict[str, str]],
         temperature: Optional[float] = None,
         max_tokens: Optional[int] = None,
         timeout: Optional[int] = None,
-        stream: Optional[bool] = None,
         reasoning_effort: Optional[str] = None
-    ) -> str:
+    ):
+
         temperature = temperature if temperature is not None else settings.LLM_TEMPERATURE
         max_tokens = max_tokens if max_tokens is not None else settings.LLM_MAX_TOKENS
         timeout = timeout if timeout is not None else settings.LLM_TIMEOUT
-        stream = stream if stream is not None else settings.LLM_STREAM
         reasoning_effort = reasoning_effort if reasoning_effort is not None else settings.LLM_REASONING_EFFORT
 
         try:
-            logger.debug(f"Calling LLM with {len(messages)} messages, temp={temperature}, stream={stream}")
+            logger.debug(f"Calling LLM with {len(messages)} messages, temp={temperature}, stream=True")
 
             response = self.client.chat.completions.create(
                 model=self.model,
@@ -41,30 +42,25 @@ class LLMClient:
                 temperature=temperature,
                 max_completion_tokens=max_tokens,
                 timeout=timeout,
-                stream=stream,
+                stream=True,
                 reasoning_effort=reasoning_effort,
                 top_p=1,
                 stop=None
             )
 
-            if stream:
-                full_content = ""
-                for chunk in response:
-                    if chunk.choices[0].delta.content:
-                        full_content += chunk.choices[0].delta.content
+            for chunk in response:
+                if chunk.choices[0].delta.content:
+                    yield chunk.choices[0].delta.content
 
-                logger.debug(f"LLM streaming response received, length: {len(full_content)} chars")
-                return full_content
-            else:
-                content = response.choices[0].message.content
-                logger.debug(f"LLM response received, length: {len(content)} chars")
-                return content
+            logger.debug(f"LLM streaming completed")
 
         except Exception as e:
-            logger.error(f"LLM API call failed: {str(e)}")
+            logger.error(f"LLM streaming API call failed: {str(e)}")
             raise
 
-    def generate_answer(
+
+
+    def generate_answer_stream(
         self,
         query: str,
         contexts: List[Dict],
@@ -72,7 +68,8 @@ class LLMClient:
         use_history: bool = True,
         temperature: Optional[float] = None,
         max_tokens: Optional[int] = None
-    ) -> str:
+    ):
+
         prompt = self._build_prompt(query, contexts)
 
         system_message = {
@@ -101,7 +98,7 @@ class LLMClient:
             "content": prompt
         })
 
-        return self.generate_completion(
+        return self.generate_completion_stream(
             messages=messages,
             temperature=temperature,
             max_tokens=max_tokens

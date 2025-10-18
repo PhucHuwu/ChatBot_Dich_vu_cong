@@ -74,7 +74,7 @@ def search_rag(query: str, k: Optional[int] = None) -> List[Dict]:
     start_time = time.time()
 
     query = query.strip().lower()
-    
+
     if settings.ENABLE_RERANKING:
         initial_k = k * settings.INITIAL_RETRIEVAL_MULTIPLIER
         logger.debug(f"Searching for: '{query[:100]}...' with initial_k={initial_k} (will rerank to top {k})")
@@ -104,7 +104,7 @@ def search_rag(query: str, k: Optional[int] = None) -> List[Dict]:
         doc = metadata[idx].copy()
         doc["faiss_distance"] = float(dist)
         vector_results.append((doc, dist))
-        
+
         if dist < threshold:
             contexts.append(doc)
             logger.debug(f"Context found with distance: {dist:.4f}")
@@ -142,46 +142,71 @@ def search_rag(query: str, k: Optional[int] = None) -> List[Dict]:
     return contexts
 
 
-def get_answer(
+def get_answer_stream(
     query: str,
     chat_history: Optional[List[Dict]] = None,
     k: Optional[int] = None,
     temperature: Optional[float] = None,
     max_tokens: Optional[int] = None
-) -> Dict:
+):
+
     import time
 
     start_time = time.time()
 
-    logger.info(f"Processing query: '{query[:100]}...'")
+    logger.info(f"Processing streaming query: '{query[:100]}...'")
 
     contexts = search_rag(query, k)
+
+    sources = []
+    for i, ctx in enumerate(contexts[:settings.MAX_CONTEXTS_RESPONSE]):
+        source_info = {
+            "source": f"Nguồn {i+1}",
+            "type": ctx.get("type", "unknown"),
+            "title": ctx.get("title", "Không có tiêu đề")
+        }
+
+        if ctx.get("href"):
+            source_info["href"] = ctx.get("href")
+
+        sources.append(source_info)
+
+    yield {
+        "type": "metadata",
+        "query": query,
+        "contexts": contexts[:settings.MAX_CONTEXTS_RESPONSE],
+        "sources": sources
+    }
 
     use_history = True if chat_history else False
 
     llm_client = get_llm_client()
 
     try:
-        answer = llm_client.generate_answer(
+        for chunk in llm_client.generate_answer_stream(
             query=query,
             contexts=contexts,
             chat_history=chat_history,
             use_history=use_history,
             temperature=temperature,
             max_tokens=max_tokens
-        )
+        ):
+            yield {
+                "type": "content",
+                "content": chunk
+            }
+
+        total_time = time.time() - start_time
+        logger.info(f"Streaming query processed in {total_time:.3f}s")
+
+        yield {
+            "type": "done",
+            "process_time": total_time
+        }
+
     except Exception as e:
-        logger.error(f"LLM generation failed: {str(e)}")
-        answer = (
-            "Xin lỗi, hệ thống tạm thời không thể tạo câu trả lời. "
-            "Vui lòng thử lại sau hoặc liên hệ hỗ trợ kỹ thuật."
-        )
-
-    total_time = time.time() - start_time
-    logger.info(f"Query processed in {total_time:.3f}s")
-
-    return {
-        "query": query,
-        "contexts": contexts,
-        "answer": answer
-    }
+        logger.error(f"LLM streaming generation failed: {str(e)}")
+        yield {
+            "type": "error",
+            "error": "Xin lỗi, hệ thống tạm thời không thể tạo câu trả lời. Vui lòng thử lại sau."
+        }

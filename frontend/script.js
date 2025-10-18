@@ -3,7 +3,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const userInput = document.getElementById("user-input");
     const chatBox = document.getElementById("chat-box");
     const sendButton = document.getElementById("send-button");
-    const typingIndicator = document.getElementById("typing-indicator");
     const quickActions = document.getElementById("quick-actions");
     const announcer = document.getElementById("announcer");
 
@@ -614,15 +613,6 @@ document.addEventListener("DOMContentLoaded", function () {
         renderConversationsList();
     }
 
-    function showTypingIndicator() {
-        typingIndicator.style.display = "flex";
-        chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
-    function hideTypingIndicator() {
-        typingIndicator.style.display = "none";
-    }
-
     function setLoadingState(isLoading) {
         if (isLoading) {
             sendButton.disabled = true;
@@ -632,6 +622,150 @@ document.addEventListener("DOMContentLoaded", function () {
             sendButton.disabled = false;
             sendButton.innerHTML = '<i class="fas fa-paper-plane"></i>';
             chatForm.classList.remove("loading");
+        }
+    }
+
+    async function sendMessageStreaming(message, targetConversationId, contextHistory) {
+        let fullAnswer = "";
+        let botMessageDiv = null;
+        let botBubbleDiv = null;
+        let shouldAutoScroll = true;
+        
+        botMessageDiv = document.createElement("div");
+        botMessageDiv.classList.add("message");
+        botMessageDiv.innerHTML = `
+            <div class="bot-message">
+                <div class="message-avatar">
+                    <i class="fas fa-landmark"></i>
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble bot-bubble">
+                        <div class="typing-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </div>
+                    <div class="message-time">${getCurrentTime()}</div>
+                </div>
+            </div>
+        `;
+        chatBox.appendChild(botMessageDiv);
+        botBubbleDiv = botMessageDiv.querySelector(".message-bubble");
+        chatBox.scrollTop = chatBox.scrollHeight;
+        
+        try {
+            const response = await fetch(CONFIG.getApiUrl("CHAT_STREAM"), {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    query: message,
+                    chat_history: contextHistory,
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+
+            while (true) {
+                const { done, value } = await reader.read();
+
+                if (done) break;
+
+                const chunk = decoder.decode(value, { stream: true });
+                const lines = chunk.split("\n");
+
+                for (const line of lines) {
+                    if (line.startsWith("data: ")) {
+                        const jsonStr = line.slice(6);
+
+                        if (jsonStr.trim()) {
+                            try {
+                                const data = JSON.parse(jsonStr);
+
+                                if (data.type === "metadata") {
+                                    shouldAutoScroll = isAtBottom();
+                                    if (shouldAutoScroll) {
+                                        chatBox.scrollTop = chatBox.scrollHeight;
+                                    }
+                                } else if (data.type === "content" && botBubbleDiv) {
+                                    fullAnswer += data.content;
+                                    
+                                    shouldAutoScroll = isAtBottom();
+                                    
+                                    const cursor = botBubbleDiv.querySelector(".streaming-cursor");
+                                    botBubbleDiv.innerHTML = formatMarkdown(fullAnswer);
+                                    
+                                    if (cursor) {
+                                        botBubbleDiv.appendChild(cursor);
+                                    } else {
+                                        const newCursor = document.createElement("span");
+                                        newCursor.className = "streaming-cursor";
+                                        newCursor.textContent = "▊";
+                                        botBubbleDiv.appendChild(newCursor);
+                                    }
+                                    
+                                    if (shouldAutoScroll) {
+                                        chatBox.scrollTop = chatBox.scrollHeight;
+                                    }
+                                } else if (data.type === "done") {
+                                    const cursor = botBubbleDiv?.querySelector(".streaming-cursor");
+                                    if (cursor) cursor.remove();
+                                    
+                                    if (currentConversationId === targetConversationId) {
+                                        const messageData = {
+                                            sender: "bot",
+                                            message: fullAnswer,
+                                            timestamp: new Date().toISOString(),
+                                        };
+                                        
+                                        chatHistory.push(messageData);
+                                        conversations[targetConversationId].messages.push(messageData);
+                                        conversations[targetConversationId].updatedAt = new Date().toISOString();
+                                        
+                                        saveConversations();
+                                        renderConversationsList();
+                                    }
+                                    
+                                    if (botMessageDiv) {
+                                        handleLinkClicks(botMessageDiv);
+                                    }
+                                } else if (data.type === "error") {
+                                    if (botMessageDiv) {
+                                        botMessageDiv.remove();
+                                    }
+                                    appendMessageToConversation(
+                                        targetConversationId,
+                                        "bot",
+                                        `Lỗi: ${data.error}`
+                                    );
+                                }
+                            } catch (e) {
+                                console.error("Parse error:", e);
+                            }
+                        }
+                    }
+                }
+            }
+
+            setLoadingState(false);
+        } catch (error) {
+            console.error("Streaming error:", error);
+            setLoadingState(false);
+            
+            if (botMessageDiv) {
+                botMessageDiv.remove();
+            }
+            
+            appendMessageToConversation(
+                targetConversationId,
+                "bot",
+                "Không thể kết nối tới máy chủ. Vui lòng kiểm tra kết nối internet và thử lại."
+            );
         }
     }
 
@@ -645,45 +779,9 @@ document.addEventListener("DOMContentLoaded", function () {
         userInput.value = "";
 
         setLoadingState(true);
-        showTypingIndicator();
 
         setTimeout(() => {
-            fetch(CONFIG.getApiUrl("CHAT"), {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    query: message,
-                    chat_history: contextHistory,
-                }),
-            })
-                .then((res) => res.json())
-                .then((data) => {
-                    hideTypingIndicator();
-                    setLoadingState(false);
-
-                    if (data.answer) {
-                        appendMessageToConversation(
-                            targetConversationId,
-                            "bot",
-                            data.answer
-                        );
-                    } else {
-                        appendMessageToConversation(
-                            targetConversationId,
-                            "bot",
-                            "Xin lỗi, tôi không thể trả lời câu hỏi này lúc này. Vui lòng thử lại sau hoặc liên hệ với bộ phận hỗ trợ kỹ thuật."
-                        );
-                    }
-                })
-                .catch(() => {
-                    hideTypingIndicator();
-                    setLoadingState(false);
-                    appendMessageToConversation(
-                        targetConversationId,
-                        "bot",
-                        "Không thể kết nối tới máy chủ. Vui lòng kiểm tra kết nối internet và thử lại."
-                    );
-                });
+            sendMessageStreaming(message, targetConversationId, contextHistory);
         }, CONFIG.TYPING_DELAY || 800);
     }
 

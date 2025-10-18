@@ -1,15 +1,16 @@
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field, validator
 import uvicorn
 from typing import Optional, List
 import logging
 import os
 import time
+import json
 
-from rag import get_answer, build_index
+from rag import get_answer_stream, build_index
 from embedding import get_device_info
 from reranker import get_reranker_info
 from hybrid_search import get_hybrid_search_info
@@ -72,17 +73,6 @@ class ChatRequest(BaseModel):
         if not v or not v.strip():
             raise ValueError('Câu hỏi không được để trống')
         return v.strip()
-
-
-class ChatResponse(BaseModel):
-    query: str
-    answer: str
-    contexts: Optional[List] = None
-    sources: Optional[List] = None
-    success: bool = True
-    message: Optional[str] = None
-    trace_id: Optional[str] = None
-    process_time: Optional[float] = None
 
 
 class SystemStatusResponse(BaseModel):
@@ -195,14 +185,14 @@ async def get_system_status(request: Request):
         )
 
 
-@app.post("/api/chat", response_model=ChatResponse)
-async def chat(request: ChatRequest, req: Request):
-    trace_id = get_trace_id(req)
-    start_time = time.time()
+@app.post("/api/chat/stream")
+async def chat_stream(request: ChatRequest, req: Request):
 
+    trace_id = get_trace_id(req)
+    
     try:
         query = request.query.strip()
-        logger.info(f"Chat request: '{query[:100]}...' (history: {len(request.chat_history)} msgs)",
+        logger.info(f"Streaming chat request: '{query[:100]}...' (history: {len(request.chat_history)} msgs)",
                     extra={"trace_id": trace_id})
 
         if not check_indexes_exist():
@@ -210,77 +200,51 @@ async def chat(request: ChatRequest, req: Request):
             build_index()
             logger.info("Index built successfully", extra={"trace_id": trace_id})
 
-        cached_result = None
-        if settings.ENABLE_CACHE:
-            cached_result = cache.get(query, k=settings.TOP_K_DEFAULT)
+        async def event_generator():
+            try:
+                for chunk in get_answer_stream(
+                    query=query,
+                    chat_history=[msg.dict() for msg in request.chat_history],
+                    k=settings.TOP_K_DEFAULT,
+                    temperature=settings.LLM_TEMPERATURE,
+                    max_tokens=settings.LLM_MAX_TOKENS
+                ):
+                    chunk["trace_id"] = trace_id
+                    chunk["success"] = True
+                    
+                    yield f"data: {json.dumps(chunk, ensure_ascii=False)}\n\n"
+                
+            except Exception as e:
+                logger.error(f"Error in streaming generation: {str(e)}",
+                           exc_info=True, extra={"trace_id": trace_id})
+                error_chunk = {
+                    "type": "error",
+                    "error": str(e) if settings.DEBUG else "Lỗi xử lý yêu cầu",
+                    "trace_id": trace_id,
+                    "success": False
+                }
+                yield f"data: {json.dumps(error_chunk, ensure_ascii=False)}\n\n"
 
-        if cached_result:
-            logger.info(f"Returning cached response", extra={"trace_id": trace_id})
-            result = cached_result
-        else:
-            result = get_answer(
-                query=query,
-                chat_history=[msg.dict() for msg in request.chat_history],
-                k=settings.TOP_K_DEFAULT,
-                temperature=settings.LLM_TEMPERATURE,
-                max_tokens=settings.LLM_MAX_TOKENS
-            )
-
-            if settings.ENABLE_CACHE and result and result.get("answer"):
-                cache.set(query, result, k=settings.TOP_K_DEFAULT)
-
-        if not result or not result.get("answer"):
-            logger.warning(f"No answer generated for query", extra={"trace_id": trace_id})
-            return ChatResponse(
-                query=query,
-                answer="Xin lỗi, tôi không thể tìm thấy thông tin phù hợp để trả lời câu hỏi của bạn. "
-                       "Vui lòng thử lại với câu hỏi khác hoặc liên hệ với bộ phận hỗ trợ.",
-                success=False,
-                message="Không tìm thấy câu trả lời",
-                trace_id=trace_id,
-                process_time=time.time() - start_time
-            )
-
-        sources = []
-        contexts = result.get("contexts", [])
-
-        for i, ctx in enumerate(contexts[:settings.MAX_CONTEXTS_RESPONSE]):
-            source_info = {
-                "source": f"Nguồn {i+1}",
-                "type": ctx.get("type", "unknown"),
-                "title": ctx.get("title", "Không có tiêu đề")
+        return StreamingResponse(
+            event_generator(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "X-Accel-Buffering": "no"
             }
-
-            if ctx.get("href"):
-                source_info["href"] = ctx.get("href")
-
-            sources.append(source_info)
-
-        process_time = time.time() - start_time
-        logger.info(f"Chat request completed in {process_time:.3f}s",
-                    extra={"trace_id": trace_id})
-
-        return ChatResponse(
-            query=query,
-            answer=result["answer"],
-            contexts=contexts[:settings.MAX_CONTEXTS_RESPONSE],
-            sources=sources,
-            success=True,
-            message="Trả lời thành công",
-            trace_id=trace_id,
-            process_time=process_time
         )
 
     except Exception as e:
-        logger.error(f"Error processing chat request: {str(e)}",
+        logger.error(f"Error processing streaming chat request: {str(e)}",
                      exc_info=True, extra={"trace_id": trace_id})
-
-        error_detail = str(e) if settings.DEBUG else "Lỗi xử lý yêu cầu"
-
         raise HTTPException(
             status_code=500,
-            detail=error_detail
+            detail=str(e) if settings.DEBUG else "Lỗi xử lý yêu cầu"
         )
+
+
+
 
 
 @app.post("/api/build")
