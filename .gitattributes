@@ -86,6 +86,7 @@ docker-compose*.yml text
 *.toml linguist-language=Python
 *.ini linguist-language=Python
 *.cfg linguist-language=Python
+*.sh linguist-language=Python
 requirements*.txt linguist-language=Python
 .env* linguist-language=Python
 Dockerfile linguist-language=Python
