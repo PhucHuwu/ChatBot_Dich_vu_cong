@@ -3,7 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -35,7 +36,7 @@
 
 <body>
     <a href="#chat-box" class="skip-to-content">Bỏ qua đến nội dung chính</a>
-    
+
     <nav class="sidebar" id="sidebar" role="navigation" aria-label="Danh sách cuộc trò chuyện">
         <div class="sidebar-header">
             <h3><i class="fas fa-comments"></i> Lịch sử chat</h3>
@@ -53,10 +54,12 @@
         </div>
 
         <div class="sidebar-footer">
-            <button class="sidebar-action-btn" id="sidebar-theme-toggle" title="Đổi chế độ sáng/tối" aria-label="Đổi chế độ sáng/tối">
+            <button class="sidebar-action-btn" id="sidebar-theme-toggle" title="Đổi chế độ sáng/tối"
+                aria-label="Đổi chế độ sáng/tối">
                 <i class="fas fa-moon"></i>
             </button>
-            <button class="sidebar-action-btn" id="sidebar-support-btn" title="Liên hệ hỗ trợ" aria-label="Liên hệ hỗ trợ">
+            <button class="sidebar-action-btn" id="sidebar-support-btn" title="Liên hệ hỗ trợ"
+                aria-label="Liên hệ hỗ trợ">
                 <i class="fas fa-headset"></i>
             </button>
         </div>
@@ -66,7 +69,8 @@
         <header class="chat-header" role="banner">
             <div class="header-content">
                 <div class="header-left">
-                    <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Mở thanh bên" aria-expanded="false" aria-controls="sidebar">
+                    <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Mở thanh bên" aria-expanded="false"
+                        aria-controls="sidebar">
                         <i class="fas fa-bars"></i>
                     </button>
                     <div class="bot-avatar">
@@ -81,7 +85,8 @@
                     </div>
                 </div>
                 <div class="header-actions">
-                    <button class="action-btn" id="theme-toggle" title="Đổi chế độ sáng/tối" aria-label="Đổi chế độ sáng/tối">
+                    <button class="action-btn" id="theme-toggle" title="Đổi chế độ sáng/tối"
+                        aria-label="Đổi chế độ sáng/tối">
                         <i class="fas fa-moon"></i>
                     </button>
                     <button class="action-btn" title="Liên hệ hỗ trợ" aria-label="Liên hệ hỗ trợ">
@@ -91,7 +96,8 @@
             </div>
         </header>
 
-        <div id="chat-box" class="chat-messages" role="log" aria-live="polite" aria-relevant="additions" aria-label="Tin nhắn chat">
+        <div id="chat-box" class="chat-messages" role="log" aria-live="polite" aria-relevant="additions"
+            aria-label="Tin nhắn chat">
             <div class="welcome-message">
                 <div class="bot-message">
                     <div class="message-avatar">
@@ -122,15 +128,18 @@
         </button>
 
         <div class="quick-actions" id="quick-actions" role="group" aria-label="Câu hỏi gợi ý">
-            <button class="quick-action-item" data-message="Hướng dẫn đăng ký tài khoản công dân" role="button" tabindex="0" aria-label="Gợi ý: Hướng dẫn đăng ký tài khoản công dân">
+            <button class="quick-action-item" data-message="Hướng dẫn đăng ký tài khoản công dân" role="button"
+                tabindex="0" aria-label="Gợi ý: Hướng dẫn đăng ký tài khoản công dân">
                 <i class="fas fa-user-plus"></i>
                 <span>Đăng ký tài khoản</span>
             </button>
-            <button class="quick-action-item" data-message="Hướng dẫn nộp tiền điện" role="button" tabindex="0" aria-label="Gợi ý: Hướng dẫn nộp tiền điện">
+            <button class="quick-action-item" data-message="Hướng dẫn nộp tiền điện" role="button" tabindex="0"
+                aria-label="Gợi ý: Hướng dẫn nộp tiền điện">
                 <i class="fas fa-bolt"></i>
                 <span>Nộp tiền điện</span>
             </button>
-            <button class="quick-action-item" data-message="Hướng dẫn sử dụng tiện ích giáo dục" role="button" tabindex="0" aria-label="Gợi ý: Hướng dẫn sử dụng tiện ích giáo dục">
+            <button class="quick-action-item" data-message="Hướng dẫn sử dụng tiện ích giáo dục" role="button"
+                tabindex="0" aria-label="Gợi ý: Hướng dẫn sử dụng tiện ích giáo dục">
                 <i class="fas fa-graduation-cap"></i>
                 <span>Tiện ích giáo dục</span>
             </button>
@@ -142,7 +151,8 @@
                     <button type="button" class="attachment-btn" title="Đính kèm file" aria-label="Đính kèm file">
                         <i class="fas fa-paperclip"></i>
                     </button>
-                    <input type="text" id="user-input" placeholder="Nhập tin nhắn..." autocomplete="off" required aria-label="Nhập tin nhắn" aria-describedby="input-hint">
+                    <input type="text" id="user-input" placeholder="Nhập tin nhắn..." autocomplete="off" required
+                        aria-label="Nhập tin nhắn" aria-describedby="input-hint">
                     <button type="submit" id="send-button" aria-label="Gửi tin nhắn">
                         <i class="fas fa-paper-plane"></i>
                     </button>
@@ -155,7 +165,8 @@
 
     <div id="announcer" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
 
-    <div class="confirm-modal-overlay" id="confirm-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title" aria-describedby="confirm-modal-message">
+    <div class="confirm-modal-overlay" id="confirm-modal-overlay" role="dialog" aria-modal="true"
+        aria-labelledby="confirm-modal-title" aria-describedby="confirm-modal-message">
         <div class="confirm-modal" tabindex="-1">
             <div class="confirm-modal-icon">
                 <i class="fas fa-exclamation-circle"></i>
@@ -169,7 +180,8 @@
                     <i class="fas fa-times"></i>
                     <span>Hủy</span>
                 </button>
-                <button class="confirm-btn confirm-btn-confirm" id="confirm-btn-confirm" aria-label="Xác nhận hành động">
+                <button class="confirm-btn confirm-btn-confirm" id="confirm-btn-confirm"
+                    aria-label="Xác nhận hành động">
                     <i class="fas fa-check"></i>
                     <span>Xác nhận</span>
                 </button>

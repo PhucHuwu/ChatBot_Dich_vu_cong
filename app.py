@@ -67,6 +67,7 @@ class ChatRequest(BaseModel):
     query: str = Field(..., min_length=1, max_length=settings.MAX_QUERY_LENGTH,
                        description="Câu hỏi của người dùng")
     chat_history: Optional[List[ChatMessage]] = Field(default=[], description="Lịch sử chat")
+    conversation_id: Optional[str] = Field(default=None, description="ID của cuộc hội thoại (conversation)")
 
     @validator('query')
     def validate_query(cls, v):
@@ -192,8 +193,12 @@ async def chat_stream(request: ChatRequest, req: Request):
     
     try:
         query = request.query.strip()
-        logger.info(f"Streaming chat request: '{query[:100]}...' (history: {len(request.chat_history)} msgs)",
-                    extra={"trace_id": trace_id})
+        conversation_id = request.conversation_id or "unknown"
+        logger.info(
+            f"Streaming chat request: '{query[:100]}...' "
+            f"(conversation: {conversation_id}, history: {len(request.chat_history)} msgs)",
+            extra={"trace_id": trace_id, "conversation_id": conversation_id}
+        )
 
         if not check_indexes_exist():
             logger.info("Index not found, building index for the first time...", extra={"trace_id": trace_id})

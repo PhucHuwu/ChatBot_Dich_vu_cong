@@ -31,6 +31,8 @@ const CONFIG = {
         CHAT_HISTORY: true,
     },
 
+    DEBUG_MODE: true,
+
     SUPPORT: {
         HOTLINE: "18001096",
         EMAIL: "dichvucong@chinhphu.vn",

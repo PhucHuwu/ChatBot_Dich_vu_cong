@@ -70,9 +70,23 @@ class LLMClient:
         max_tokens: Optional[int] = None
     ):
 
-        context_info = self._build_context_info(contexts)
-        
         system_content = self._get_system_prompt()
+        
+        if use_history and chat_history:
+            recent_history = chat_history[-settings.CONTEXT_WINDOW_MESSAGES:]
+            user_questions = [msg for msg in recent_history if msg.get("role") == "user"][-5:]
+            
+            if user_questions:
+                history_context = self._build_history_context(user_questions)
+                system_content += "\n\n" + history_context
+                logger.info(f"Using chat history: {len(user_questions)} user questions (filtered from {len(recent_history)} total messages)")
+        else:
+            if not use_history:
+                logger.info("Chat history skipped: standalone question detected")
+            elif not chat_history:
+                logger.debug("Chat history skipped: no history available")
+        
+        context_info = self._build_context_info(contexts)
         if context_info:
             system_content += "\n\n" + context_info
         
@@ -82,21 +96,6 @@ class LLMClient:
         }
 
         messages = [system_message]
-
-        if use_history and chat_history:
-            recent_history = chat_history[-settings.CONTEXT_WINDOW_MESSAGES:]
-            user_questions = [msg for msg in recent_history if msg.get("role") == "user"][-5:]
-            logger.info(f"Using chat history: {len(user_questions)} user questions (filtered from {len(recent_history)} total messages)")
-            for msg in user_questions:
-                messages.append({
-                    "role": "user",
-                    "content": msg.get("content", "")
-                })
-        else:
-            if not use_history:
-                logger.info("Chat history skipped: standalone question detected")
-            elif not chat_history:
-                logger.debug("Chat history skipped: no history available")
 
         messages.append({
             "role": "user",
@@ -109,6 +108,24 @@ class LLMClient:
             max_tokens=max_tokens
         )
 
+    def _build_history_context(self, user_questions: List[Dict]) -> str:
+        if not user_questions:
+            return ""
+        
+        history_parts = ["LỊCH SỬ CÂU HỎI TRƯỚC ĐÓ CỦA NGƯỜI DÙNG:"]
+        history_parts.append("(Đây là các câu hỏi người dùng đã hỏi trước đó trong cuộc hội thoại này)\n")
+        
+        for i, msg in enumerate(user_questions, 1):
+            history_parts.append(f"{i}. {msg.get('content', '')}")
+        
+        history_parts.append(
+            "\nLƯU Ý: Câu hỏi tiếp theo của người dùng có thể liên quan đến các câu hỏi trên. "
+            "Hãy sử dụng ngữ cảnh từ lịch sử để trả lời chính xác và tự nhiên hơn."
+            "Nếu câu hỏi tiếp theo không liên quan, hãy trả lời dựa trên thông tin được cung cấp."
+        )
+        
+        return "\n".join(history_parts)
+    
     def _build_context_info(self, contexts: List[Dict]) -> str:
         if not contexts or len(contexts) == 0:
             return ""

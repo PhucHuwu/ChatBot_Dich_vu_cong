@@ -91,7 +91,8 @@ body.dark-mode {
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, Geneva,
+        Verdana, sans-serif;
     background: linear-gradient(
         135deg,
         var(--bg-gradient-start) 0%,
@@ -1692,8 +1693,6 @@ body.dark-mode .markdown-blockquote {
     color: var(--text-secondary);
 }
 
-
-
 body.dark-mode .chat-link {
     background: rgba(206, 122, 88, 0.15);
     border-color: rgba(206, 122, 88, 0.3);
@@ -2017,8 +2016,6 @@ body.dark-mode .scroll-to-bottom:hover {
         font-size: 14px;
         margin-bottom: 6px;
     }
-
-
 
     .quick-actions {
         padding: 12px 15px;
@@ -2359,8 +2356,7 @@ a:focus-visible {
     max-width: 450px;
     width: 90%;
     box-shadow: -5px -5px 15px rgba(255, 255, 255, 0.6),
-        5px 5px 20px rgba(0, 0, 0, 0.2), 
-        0 10px 40px rgba(0, 0, 0, 0.3),
+        5px 5px 20px rgba(0, 0, 0, 0.2), 0 10px 40px rgba(0, 0, 0, 0.3),
         inset -2px -2px 6px rgba(0, 0, 0, 0.05),
         inset 3px 3px 8px rgba(255, 255, 255, 0.5);
     transform: scale(0.9) translateY(20px);
@@ -2383,15 +2379,15 @@ a:focus-visible {
     font-size: 32px;
     color: white;
     box-shadow: -3px -3px 8px rgba(255, 255, 255, 0.4),
-        3px 3px 12px rgba(251, 191, 36, 0.4),
-        0 4px 20px rgba(251, 191, 36, 0.3),
+        3px 3px 12px rgba(251, 191, 36, 0.4), 0 4px 20px rgba(251, 191, 36, 0.3),
         inset -2px -2px 4px rgba(0, 0, 0, 0.15),
         inset 3px 3px 6px rgba(255, 255, 255, 0.3);
     animation: modalIconPulse 2s ease-in-out infinite;
 }
 
 @keyframes modalIconPulse {
-    0%, 100% {
+    0%,
+    100% {
         transform: scale(1);
     }
     50% {
@@ -2449,8 +2445,7 @@ a:focus-visible {
     color: var(--text-primary);
     border: 2px solid var(--border-color);
     box-shadow: -3px -3px 8px rgba(255, 255, 255, 0.6),
-        3px 3px 12px rgba(0, 0, 0, 0.1),
-        inset -1px -1px 3px rgba(0, 0, 0, 0.05),
+        3px 3px 12px rgba(0, 0, 0, 0.1), inset -1px -1px 3px rgba(0, 0, 0, 0.05),
         inset 2px 2px 5px rgba(255, 255, 255, 0.5);
 }
 
@@ -2472,8 +2467,7 @@ a:focus-visible {
     background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
     color: white;
     box-shadow: -3px -3px 8px rgba(255, 255, 255, 0.4),
-        3px 3px 12px rgba(239, 68, 68, 0.4),
-        0 4px 20px rgba(239, 68, 68, 0.3),
+        3px 3px 12px rgba(239, 68, 68, 0.4), 0 4px 20px rgba(239, 68, 68, 0.3),
         inset -2px -2px 4px rgba(0, 0, 0, 0.15),
         inset 3px 3px 6px rgba(255, 255, 255, 0.3);
 }
@@ -2481,8 +2475,7 @@ a:focus-visible {
 .confirm-btn-confirm:hover {
     transform: translateY(-2px) scale(1.02);
     box-shadow: -4px -4px 10px rgba(255, 255, 255, 0.5),
-        4px 4px 16px rgba(239, 68, 68, 0.5),
-        0 6px 24px rgba(239, 68, 68, 0.4),
+        4px 4px 16px rgba(239, 68, 68, 0.5), 0 6px 24px rgba(239, 68, 68, 0.4),
         inset -2px -2px 5px rgba(0, 0, 0, 0.2),
         inset 3px 3px 8px rgba(255, 255, 255, 0.4);
 }
@@ -2493,16 +2486,14 @@ a:focus-visible {
 
 body.dark-mode .confirm-modal {
     box-shadow: -5px -5px 15px rgba(148, 163, 184, 0.05),
-        5px 5px 20px rgba(0, 0, 0, 0.8),
-        0 10px 40px rgba(0, 0, 0, 0.6),
+        5px 5px 20px rgba(0, 0, 0, 0.8), 0 10px 40px rgba(0, 0, 0, 0.6),
         inset -2px -2px 6px rgba(0, 0, 0, 0.2),
         inset 3px 3px 8px rgba(148, 163, 184, 0.05);
 }
 
 body.dark-mode .confirm-modal-icon {
     box-shadow: -3px -3px 8px rgba(148, 163, 184, 0.05),
-        3px 3px 12px rgba(0, 0, 0, 0.6),
-        0 4px 20px rgba(251, 191, 36, 0.2),
+        3px 3px 12px rgba(0, 0, 0, 0.6), 0 4px 20px rgba(251, 191, 36, 0.2),
         inset -2px -2px 4px rgba(0, 0, 0, 0.15),
         inset 3px 3px 6px rgba(255, 255, 255, 0.1);
 }
@@ -2511,8 +2502,7 @@ body.dark-mode .confirm-btn-cancel {
     background: var(--bubble-bg);
     border-color: var(--border-color);
     box-shadow: -2px -2px 6px rgba(148, 163, 184, 0.05),
-        2px 2px 10px rgba(0, 0, 0, 0.6),
-        inset -1px -1px 3px rgba(0, 0, 0, 0.2),
+        2px 2px 10px rgba(0, 0, 0, 0.6), inset -1px -1px 3px rgba(0, 0, 0, 0.2),
         inset 2px 2px 5px rgba(148, 163, 184, 0.05);
 }
 
@@ -2520,23 +2510,20 @@ body.dark-mode .confirm-btn-cancel:hover {
     background: var(--quick-action-hover);
     border-color: var(--text-muted);
     box-shadow: -2px -2px 6px rgba(148, 163, 184, 0.08),
-        2px 2px 12px rgba(0, 0, 0, 0.7),
-        inset -1px -1px 3px rgba(0, 0, 0, 0.2),
+        2px 2px 12px rgba(0, 0, 0, 0.7), inset -1px -1px 3px rgba(0, 0, 0, 0.2),
         inset 2px 2px 5px rgba(148, 163, 184, 0.08);
 }
 
 body.dark-mode .confirm-btn-confirm {
     box-shadow: -3px -3px 8px rgba(148, 163, 184, 0.05),
-        3px 3px 12px rgba(0, 0, 0, 0.6),
-        0 4px 20px rgba(239, 68, 68, 0.2),
+        3px 3px 12px rgba(0, 0, 0, 0.6), 0 4px 20px rgba(239, 68, 68, 0.2),
         inset -2px -2px 4px rgba(0, 0, 0, 0.15),
         inset 3px 3px 6px rgba(255, 255, 255, 0.1);
 }
 
 body.dark-mode .confirm-btn-confirm:hover {
     box-shadow: -4px -4px 10px rgba(148, 163, 184, 0.08),
-        4px 4px 16px rgba(0, 0, 0, 0.7),
-        0 6px 24px rgba(239, 68, 68, 0.25),
+        4px 4px 16px rgba(0, 0, 0, 0.7), 0 6px 24px rgba(239, 68, 68, 0.25),
         inset -2px -2px 5px rgba(0, 0, 0, 0.2),
         inset 3px 3px 8px rgba(255, 255, 255, 0.15);
 }
@@ -2586,10 +2573,12 @@ body.dark-mode .confirm-btn-confirm:hover {
 }
 
 @keyframes blink {
-    0%, 50% {
+    0%,
+    50% {
         opacity: 1;
     }
-    51%, 100% {
+    51%,
+    100% {
         opacity: 0;
     }
 }
