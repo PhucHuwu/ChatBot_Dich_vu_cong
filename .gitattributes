@@ -92,9 +92,6 @@ requirements*.txt linguist-language=Python
 Dockerfile linguist-language=Python
 docker-compose*.yml linguist-language=Python
 
-*.md linguist-documentation
-docs/** linguist-documentation
-
 .github/** export-ignore
 .pytest_cache/** export-ignore
 .vscode/** export-ignore
