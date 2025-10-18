@@ -31,7 +31,7 @@ const CONFIG = {
         CHAT_HISTORY: true,
     },
 
-    DEBUG_MODE: true,
+    DEBUG_MODE: false,
 
     SUPPORT: {
         HOTLINE: "18001096",

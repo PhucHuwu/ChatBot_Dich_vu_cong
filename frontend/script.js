@@ -1339,6 +1339,13 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
 
+        if (e.key === "Enter") {
+            if (confirmModalOverlay.classList.contains("active")) {
+                confirmBtnConfirm.click();
+                e.preventDefault();
+            }
+        }
+
         if ((e.ctrlKey || e.metaKey) && e.key === "k") {
             e.preventDefault();
             userInput.focus();
