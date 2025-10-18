@@ -34,6 +34,11 @@ document.addEventListener("DOMContentLoaded", function () {
     const confirmBtnCancel = document.getElementById("confirm-btn-cancel");
     const confirmBtnConfirm = document.getElementById("confirm-btn-confirm");
 
+    const helpToggle = document.getElementById("help-toggle");
+    const sidebarHelpBtn = document.getElementById("sidebar-help-btn");
+    const helpModalOverlay = document.getElementById("help-modal-overlay");
+    const helpModalClose = document.getElementById("help-modal-close");
+
     let chatHistory = [];
     const MAX_HISTORY_LENGTH = CONFIG.MAX_HISTORY_LENGTH || 10;
 
@@ -1328,9 +1333,52 @@ document.addEventListener("DOMContentLoaded", function () {
             );
         });
 
+    function openHelpModal() {
+        helpModalOverlay.classList.add("active");
+        helpModalOverlay.setAttribute("aria-hidden", "false");
+
+        setTimeout(() => {
+            trapFocus(document.querySelector(".help-modal"));
+        }, 100);
+
+        announce("Đã mở hướng dẫn sử dụng");
+    }
+
+    function closeHelpModal() {
+        helpModalOverlay.classList.remove("active");
+        helpModalOverlay.setAttribute("aria-hidden", "true");
+        announce("Đã đóng hướng dẫn sử dụng");
+    }
+
+    if (helpToggle) {
+        helpToggle.addEventListener("click", openHelpModal);
+    }
+
+    if (sidebarHelpBtn) {
+        sidebarHelpBtn.addEventListener("click", function() {
+            openHelpModal();
+            closeSidebar();
+        });
+    }
+
+    if (helpModalClose) {
+        helpModalClose.addEventListener("click", closeHelpModal);
+    }
+
+    if (helpModalOverlay) {
+        helpModalOverlay.addEventListener("click", function (e) {
+            if (e.target === helpModalOverlay) {
+                closeHelpModal();
+            }
+        });
+    }
+
     document.addEventListener("keydown", function (e) {
         if (e.key === "Escape") {
-            if (confirmModalOverlay.classList.contains("active")) {
+            if (helpModalOverlay && helpModalOverlay.classList.contains("active")) {
+                closeHelpModal();
+                e.preventDefault();
+            } else if (confirmModalOverlay.classList.contains("active")) {
                 confirmBtnCancel.click();
                 e.preventDefault();
             } else if (sidebar.classList.contains("active")) {

@@ -38,9 +38,9 @@
     <a href="#chat-box" class="skip-to-content">Bỏ qua đến nội dung chính</a>
 
     <nav class="sidebar" id="sidebar" role="navigation" aria-label="Danh sách cuộc trò chuyện">
-        <div class="sidebar-header">
+        <div class="sidebar-header gradient-header-base">
             <h3><i class="fas fa-comments"></i> Lịch sử chat</h3>
-            <button class="sidebar-close" id="sidebar-close" aria-label="Đóng thanh bên">
+            <button class="sidebar-close icon-btn-base icon-btn-40" id="sidebar-close" aria-label="Đóng thanh bên">
                 <i class="fas fa-times"></i>
             </button>
         </div>
@@ -50,10 +50,14 @@
             <span>Đoạn chat mới</span>
         </button>
 
-        <div class="conversations-list" id="conversations-list" role="list" aria-live="polite">
+        <div class="conversations-list custom-scrollbar" id="conversations-list" role="list" aria-live="polite">
         </div>
 
         <div class="sidebar-footer">
+            <button class="sidebar-action-btn" id="sidebar-help-btn" title="Hướng dẫn sử dụng"
+                aria-label="Hướng dẫn sử dụng">
+                <i class="fas fa-question-circle"></i>
+            </button>
             <button class="sidebar-action-btn" id="sidebar-theme-toggle" title="Đổi chế độ sáng/tối"
                 aria-label="Đổi chế độ sáng/tối">
                 <i class="fas fa-moon"></i>
@@ -66,10 +70,10 @@
     </nav>
 
     <main class="chat-container" role="main">
-        <header class="chat-header" role="banner">
+        <header class="chat-header gradient-header-base" role="banner">
             <div class="header-content">
                 <div class="header-left">
-                    <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Mở thanh bên" aria-expanded="false"
+                    <button class="sidebar-toggle icon-btn-base icon-btn-40" id="sidebar-toggle" aria-label="Mở thanh bên" aria-expanded="false"
                         aria-controls="sidebar">
                         <i class="fas fa-bars"></i>
                     </button>
@@ -85,18 +89,22 @@
                     </div>
                 </div>
                 <div class="header-actions">
-                    <button class="action-btn" id="theme-toggle" title="Đổi chế độ sáng/tối"
+                    <button class="action-btn icon-btn-base icon-btn-40" id="help-toggle" title="Hướng dẫn sử dụng"
+                        aria-label="Hướng dẫn sử dụng">
+                        <i class="fas fa-question-circle"></i>
+                    </button>
+                    <button class="action-btn icon-btn-base icon-btn-40" id="theme-toggle" title="Đổi chế độ sáng/tối"
                         aria-label="Đổi chế độ sáng/tối">
                         <i class="fas fa-moon"></i>
                     </button>
-                    <button class="action-btn" title="Liên hệ hỗ trợ" aria-label="Liên hệ hỗ trợ">
+                    <button class="action-btn icon-btn-base icon-btn-40" title="Liên hệ hỗ trợ" aria-label="Liên hệ hỗ trợ">
                         <i class="fas fa-headset"></i>
                     </button>
                 </div>
             </div>
         </header>
 
-        <div id="chat-box" class="chat-messages" role="log" aria-live="polite" aria-relevant="additions"
+        <div id="chat-box" class="chat-messages custom-scrollbar-8" role="log" aria-live="polite" aria-relevant="additions"
             aria-label="Tin nhắn chat">
             <div class="welcome-message">
                 <div class="bot-message">
@@ -127,7 +135,7 @@
             <i class="fas fa-arrow-down"></i>
         </button>
 
-        <div class="quick-actions" id="quick-actions" role="group" aria-label="Câu hỏi gợi ý">
+        <div class="quick-actions custom-scrollbar-horizontal" id="quick-actions" role="group" aria-label="Câu hỏi gợi ý">
             <button class="quick-action-item" data-message="Hướng dẫn đăng ký tài khoản công dân" role="button"
                 tabindex="0" aria-label="Gợi ý: Hướng dẫn đăng ký tài khoản công dân">
                 <i class="fas fa-user-plus"></i>
@@ -165,7 +173,7 @@
 
     <div id="announcer" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
 
-    <div class="confirm-modal-overlay" id="confirm-modal-overlay" role="dialog" aria-modal="true"
+    <div class="confirm-modal-overlay modal-overlay-base modal-overlay-dark" id="confirm-modal-overlay" role="dialog" aria-modal="true"
         aria-labelledby="confirm-modal-title" aria-describedby="confirm-modal-message">
         <div class="confirm-modal" tabindex="-1">
             <div class="confirm-modal-icon">
@@ -185,6 +193,59 @@
                     <i class="fas fa-check"></i>
                     <span>Xác nhận</span>
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="help-modal-overlay modal-overlay-base modal-overlay-light" id="help-modal-overlay" role="dialog" aria-modal="true"
+        aria-labelledby="help-modal-title">
+        <div class="help-modal" tabindex="-1">
+            <div class="help-modal-header gradient-header-base">
+                <h3 id="help-modal-title">
+                    <i class="fas fa-book-open"></i>
+                    Hướng dẫn sử dụng Chatbot
+                </h3>
+                <button class="help-modal-close icon-btn-base icon-btn-36" id="help-modal-close" aria-label="Đóng hướng dẫn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="help-modal-content custom-scrollbar">
+                <div class="help-section">
+                    <h4><i class="fas fa-comments"></i> Trò chuyện với Chatbot</h4>
+                    <ul class="list-arrow-style">
+                        <li>Nhập câu hỏi của bạn vào ô tin nhắn ở cuối màn hình</li>
+                        <li>Nhấn nút <i class="fas fa-paper-plane help-icon"></i> hoặc phím <strong>Enter</strong> để gửi tin nhắn</li>
+                        <li>Chatbot sẽ trả lời câu hỏi của bạn về các dịch vụ công</li>
+                    </ul>
+                </div>
+
+                <div class="help-section">
+                    <h4><i class="fas fa-lightbulb"></i> Gợi ý nhanh</h4>
+                    <ul class="list-arrow-style">
+                        <li>Nếu muốn chatbot trả lời nhắn gọn, hãy thêm vào cuối câu hỏi <strong>"Trả lời ngắn gọn"</strong></li>
+                        <li>Sử dụng các nút gợi ý phía trên ô nhập để truy vấn nhanh</li>
+                        <li>Các gợi ý sẽ tự động điền câu hỏi vào chatbot</li>
+                    </ul>
+                </div>
+
+                <div class="help-section">
+                    <h4><i class="fas fa-history"></i> Quản lý lịch sử chat</h4>
+                    <ul class="list-arrow-style">
+                        <li>Nhấn nút <i class="fas fa-bars help-icon"></i> để mở danh sách lịch sử chat</li>
+                        <li>Chọn một cuộc trò chuyện để xem lại</li>
+                        <li>Nhấn nút <i class="fas fa-plus help-icon"></i> <strong>Đoạn chat mới</strong> để bắt đầu cuộc trò chuyện mới</li>
+                        <li>Nhấn nút <i class="fas fa-trash help-icon"></i> để xóa cuộc trò chuyện</li>
+                    </ul>
+                </div>
+
+                <div class="help-section">
+                    <h4><i class="fas fa-info-circle"></i> Lưu ý</h4>
+                    <ul class="list-arrow-style">
+                        <li>Lịch sử chat được lưu trên trình duyệt của bạn</li>
+                        <li>Chatbot hỗ trợ 24/7 về các dịch vụ công</li>
+                        <li>Nếu cần hỗ trợ thêm, nhấn nút <i class="fas fa-headset help-icon"></i> để xem thông tin liên hệ</li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
