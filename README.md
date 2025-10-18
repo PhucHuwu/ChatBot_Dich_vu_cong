@@ -45,10 +45,15 @@ This chatbot brings powerful AI capabilities to help citizens access public serv
 
 ### Advanced Features
 
+-   **Hybrid Search**: Combines FAISS semantic search with BM25 keyword search using RRF fusion
+-   **Re-ranking**: CrossEncoder model (`ms-marco-MiniLM-L-6-v2`) re-scores retrieved documents for better relevance
 -   **Semantic Search**: L2-normalized embeddings for accurate similarity matching
+-   **Streaming Responses**: Real-time token streaming via Server-Sent Events (SSE)
 -   **Threshold-based Filtering**: Intelligent fallback for low-confidence results
 -   **Source Attribution**: Every response includes verifiable source references
 -   **Batch Processing**: Optimized embedding generation for large datasets
+-   **Chat History Context**: Maintains conversation context for follow-up questions
+-   **Sub-path Deployment**: Configurable BASE_PATH for flexible deployment scenarios
 -   **Health Checks**: Liveness and readiness probes for orchestration
 -   **Error Recovery**: Graceful degradation with retry mechanisms
 -   **Rich Markdown Support**: Full GFM (GitHub Flavored Markdown) rendering with tables, code blocks, and more
@@ -60,36 +65,52 @@ This chatbot brings powerful AI capabilities to help citizens access public serv
 │   Client    │
 │  (Browser)  │
 └──────┬──────┘
-       │ HTTP/JSON
+       │ HTTP/SSE (Streaming)
        ▼
-┌──────────────────────────────────┐
-│         FastAPI Backend          │
-│  ┌──────────┐      ┌──────────┐  │
-│  │  Cache   │◄────►│   RAG    │  │
-│  └──────────┘      └────┬─────┘  │
-│                         │        │
-│  ┌──────────────────────┼─────┐  │
-│  │  FAISS Vector Store  │     │  │
-│  │  ┌─────────┐  ┌──────▼───┐ │  │
-│  │  │  Index  │  │ Metadata │ │  │
-│  │  └─────────┘  └──────────┘ │  │
-│  └────────────────────────────┘  │
-│                          │       │
-│                          ▼       │
-│                   ┌──────────┐   │
-│                   │   LLM    │   │
-│                   │  (Groq)  │   │
-│                   └──────────┘   │
-└──────────────────────────────────┘
+┌───────────────────────────────────────────┐
+│              FastAPI Backend              │
+│       ┌─────────┐       ┌─────────┐       │
+│       │  Cache  │◄─────►│   RAG   │       │
+│       └─────────┘       └────┬────┘       │
+│                              │            │
+│  ┌───────────────────────────┼─────────┐  │
+│  │   Hybrid Search           │         │  │
+│  │  ┌─────────────┐   ┌──────▼──────┐  │  │
+│  │  │ BM25 Index  │   │FAISS Vector │  │  │
+│  │  │  (Keyword)  │   │    Store    │  │  │
+│  │  └──────┬──────┘   └──────┬──────┘  │  │
+│  │         │                 │         │  │
+│  │         └────────┬────────┘         │  │
+│  │                  │                  │  │
+│  │         ┌────────▼────────┐         │  │
+│  │         │   RRF Fusion    │         │  │
+│  │         └────────┬────────┘         │  │
+│  └──────────────────┼──────────────────┘  │
+│                     │                     │
+│            ┌────────▼────────┐            │
+│            │    Re-ranker    │            │
+│            │ (CrossEncoder)  │            │
+│            └────────┬────────┘            │
+│                     │                     │
+│                     ▼                     │
+│               ┌───────────┐               │
+│               │    LLM    │               │
+│               │  (Groq)   │               │
+│               └───────────┘               │
+└───────────────────────────────────────────┘
 ```
 
 ### Data Flow
 
 1. **Query Processing**: User query → Embedding generation → Vector normalization
-2. **Retrieval**: FAISS similarity search → Threshold filtering → Context ranking
-3. **Generation**: Context assembly → Prompt construction → LLM inference
-4. **Response**: Answer formatting → Source attribution → Cache storage
-5. **Delivery**: JSON response with contexts and metadata
+2. **Hybrid Retrieval**:
+    - FAISS similarity search (semantic)
+    - BM25 keyword search
+    - Reciprocal Rank Fusion (RRF) to combine results
+3. **Re-ranking**: CrossEncoder re-scores documents for relevance
+4. **Generation**: Context assembly → Prompt construction → LLM streaming inference
+5. **Response**: Streaming answer with real-time tokens → Source attribution → Cache storage
+6. **Delivery**: Server-Sent Events (SSE) stream with contexts and metadata
 
 ## Tech Stack
 
@@ -104,6 +125,9 @@ This chatbot brings powerful AI capabilities to help citizens access public serv
 -   **Sentence Transformers**: Multilingual embedding generation
     -   Model: `paraphrase-multilingual-MiniLM-L12-v2`
 -   **FAISS**: Efficient vector similarity search (Facebook AI)
+-   **BM25 (Okapi)**: Keyword-based search using rank-bm25
+-   **CrossEncoder**: Document re-ranking for relevance
+    -   Model: `cross-encoder/ms-marco-MiniLM-L-6-v2`
 -   **Groq**: High-performance LLM API
     -   Default Model: `openai/gpt-oss-120b`
 
@@ -111,6 +135,7 @@ This chatbot brings powerful AI capabilities to help citizens access public serv
 
 -   **NumPy**: Numerical operations and vector manipulation
 -   **scikit-learn**: Normalization and preprocessing utilities
+-   **rank-bm25**: BM25 keyword search implementation
 -   **Python JSON Logger**: Structured logging for production
 
 ### Infrastructure
@@ -266,12 +291,37 @@ Create a `.env` file in the project root. See [`.env.example`](.env.example) for
 GROQ_API_KEY=your_groq_api_key_here
 ```
 
-**Optional configurations** (with sensible defaults):
-- Application settings (APP_ENV, DEBUG, HOST, PORT, WORKERS)
-- LLM configuration (model, temperature, max tokens, timeout)
-- Embedding settings (model, batch size, device)
-- Vector search parameters (similarity threshold, top K results)
-- Caching, logging, rate limiting, security options
+**Important optional configurations:**
+
+```bash
+# Deployment path - Important for sub-path deployments
+# Leave empty "" for root deployment: https://domain.com/
+# Set to sub-path for nested deployment: https://domain.com/chatbot
+# Must be synchronized with frontend/config.js BASE_PATH
+BASE_PATH=/chatbot
+
+# CORS - Customize for your domain
+ALLOWED_ORIGINS=https://yourdomain.gov.vn,https://api.yourdomain.gov.vn
+
+# Re-ranking - Improve result relevance (default: enabled)
+ENABLE_RERANKING=True
+RERANKING_MODEL=cross-encoder/ms-marco-MiniLM-L-6-v2
+RERANKING_TOP_K=5
+
+# Hybrid Search - Combine semantic + keyword search (default: enabled)
+ENABLE_HYBRID_SEARCH=True
+HYBRID_FUSION_METHOD=rrf
+BM25_WEIGHT=0.5
+VECTOR_WEIGHT=0.5
+```
+
+**Other optional configurations** (with sensible defaults):
+
+-   Application settings (APP_ENV, DEBUG, HOST, PORT, WORKERS)
+-   LLM configuration (model, temperature, max tokens, timeout, reasoning effort)
+-   Embedding settings (model, batch size, device)
+-   Vector search parameters (similarity threshold, top K results)
+-   Caching, logging, rate limiting, security options
 
 For the complete list of configuration options with detailed explanations, see [`.env.example`](.env.example).
 
@@ -302,23 +352,30 @@ The system automatically validates critical configurations on startup (see [`con
 
 ### API Usage
 
-#### Example: Chat Request
+#### Example: Chat Streaming Request
+
+The API uses Server-Sent Events (SSE) for real-time streaming responses:
 
 ```bash
-curl -X POST "http://localhost:8000/api/chat" \
+curl -N -X POST "http://localhost:8000/api/chat/stream" \
   -H "Content-Type: application/json" \
   -d '{
     "query": "Làm thế nào để đăng ký thường trú?",
-    "chat_history": []
+    "chat_history": [],
+    "conversation_id": "conv-123"
   }'
-````
+```
 
-#### Response Format
+#### Streaming Response Format
+
+The response streams multiple events via SSE:
+
+**1. Metadata Event** (sent first):
 
 ```json
 {
+    "type": "metadata",
     "query": "Làm thế nào để đăng ký thường trú?",
-    "answer": "Để đăng ký thường trú, bạn cần...",
     "contexts": [
         {
             "text": "Thủ tục đăng ký thường trú...",
@@ -335,47 +392,39 @@ curl -X POST "http://localhost:8000/api/chat" \
             "title": "Đăng ký thường trú",
             "href": "https://dichvucong.gov.vn/..."
         }
-    ],
-    "success": true,
-    "message": "Trả lời thành công",
-    "trace_id": "abc123-def456-ghi789",
-    "process_time": 1.234
+    ]
 }
 ```
 
-### Python SDK Example
+**2. Content Events** (streamed incrementally):
 
-```python
-import requests
+```json
+{
+    "type": "content",
+    "content": "Để đăng ký thường trú, bạn cần..."
+}
+```
 
-class ChatbotClient:
-    def __init__(self, base_url="http://localhost:8000"):
-        self.base_url = base_url
-        self.chat_history = []
+**3. Done Event** (sent last):
 
-    def ask(self, question):
-        response = requests.post(
-            f"{self.base_url}/api/chat",
-            json={
-                "query": question,
-                "chat_history": self.chat_history
-            }
-        )
+```json
+{
+    "type": "done",
+    "process_time": 1.234,
+    "trace_id": "abc123-def456-ghi789",
+    "success": true
+}
+```
 
-        if response.status_code == 200:
-            data = response.json()
-            self.chat_history.append({
-                "question": question,
-                "answer": data["answer"]
-            })
-            return data
-        else:
-            raise Exception(f"Error: {response.status_code}")
+**4. Error Event** (if an error occurs):
 
-# Usage
-client = ChatbotClient()
-result = client.ask("Hồ sơ đăng ký kết hôn cần gì?")
-print(result["answer"])
+```json
+{
+    "type": "error",
+    "error": "Error message",
+    "trace_id": "abc123-def456-ghi789",
+    "success": false
+}
 ```
 
 ### Rebuilding the Index
@@ -407,41 +456,46 @@ build_index(batch_size=32)
 
 ### Endpoints Overview
 
-| Endpoint              | Method | Description                | Auth Required |
-| --------------------- | ------ | -------------------------- | ------------- |
-| `/`                   | GET    | Frontend homepage          | No            |
-| `/health`             | GET    | Basic health check         | No            |
-| `/api/status`         | GET    | Detailed system status     | No            |
-| `/api/chat`           | POST   | Chat with the bot          | No            |
-| `/api/build`          | POST   | Rebuild vector index       | No            |
-| `/api/cache/stats`    | GET    | Get cache statistics       | No            |
-| `/api/cache/clear`    | POST   | Clear cache                | No            |
-| `/api/suggestions`    | GET    | Get suggested questions    | No            |
-| `/api/docs`           | GET    | Interactive API docs       | No            |
-| `/api/redoc`          | GET    | API documentation          | No            |
+| Endpoint           | Method | Description                        | Auth Required |
+| ------------------ | ------ | ---------------------------------- | ------------- |
+| `/`                | GET    | Frontend homepage                  | No            |
+| `/health`          | GET    | Basic health check                 | No            |
+| `/api/status`      | GET    | Detailed system status             | No            |
+| `/api/chat/stream` | POST   | Chat with streaming response (SSE) | No            |
+| `/api/build`       | POST   | Rebuild vector index               | No            |
+| `/api/cache/stats` | GET    | Get cache statistics               | No            |
+| `/api/cache/clear` | POST   | Clear cache                        | No            |
+| `/api/suggestions` | GET    | Get suggested questions            | No            |
+| `/api/docs`        | GET    | Interactive API docs (Swagger)     | No            |
+| `/api/redoc`       | GET    | API documentation (ReDoc)          | No            |
 
 ### Key Endpoints
 
 **Most important endpoints:**
 
-- `POST /api/chat` - Main chat endpoint for asking questions
-- `GET /health` - Health check
-- `GET /api/status` - System status with cache and device info
+-   `POST /api/chat/stream` - Main chat endpoint with streaming response (SSE)
+-   `GET /health` - Health check
+-   `GET /api/status` - System status with cache, device info, re-ranker and hybrid search status
 
 **Example Chat Request:**
 
 ```bash
-curl -X POST "http://localhost:8000/api/chat" \
+curl -N -X POST "http://localhost:8000/api/chat/stream" \
   -H "Content-Type: application/json" \
-  -d '{"query": "Thủ tục cấp CMND mất cần gì?"}'
+  -d '{
+    "query": "Thủ tục cấp CMND mất cần gì?",
+    "chat_history": [],
+    "conversation_id": "conv-123"
+  }'
 ```
 
-**Response includes:**
-- `answer` - Generated answer
-- `contexts` - Retrieved relevant contexts
-- `sources` - Source references with links
-- `success` - Status indicator
-- `trace_id` - Request tracking ID
+**Streaming response includes:**
+
+-   Multiple SSE events with `data:` prefix
+-   `metadata` event - Retrieved contexts and sources
+-   `content` events - Streamed answer tokens
+-   `done` event - Completion with process time and trace_id
+-   `error` event - Error details if something fails
 
 ### Interactive Documentation
 
@@ -457,17 +511,19 @@ When `EXPOSE_DOCS=True`, access:
 -   [ ] Set `APP_ENV=production` in environment variables
 -   [ ] Set `DEBUG=False` in environment variables
 -   [ ] Configure `ALLOWED_ORIGINS` with your actual domain(s)
--   [ ] Configure `BASE_PATH` if deploying to a sub-path
+-   [ ] Configure `BASE_PATH` if deploying to a sub-path (must sync with frontend/config.js)
 -   [ ] Set `EXPOSE_DOCS=False` for production security
 -   [ ] Use valid `GROQ_API_KEY` from Groq console
+-   [ ] Configure re-ranking: `ENABLE_RERANKING=True` (recommended)
+-   [ ] Configure hybrid search: `ENABLE_HYBRID_SEARCH=True` (recommended)
 -   [ ] Set up HTTPS/TLS termination (Nginx/Traefik/Caddy)
--   [ ] Configure reverse proxy with proper timeouts
+-   [ ] Configure reverse proxy with proper timeouts (at least 60s for streaming)
 -   [ ] Set up log aggregation if needed
--   [ ] Set up automated backups for `embeddings/` directory
+-   [ ] Set up automated backups for `embeddings/` directory (includes FAISS and BM25 indexes)
 -   [ ] Enable rate limiting with `ENABLE_RATE_LIMIT=True` if needed
 -   [ ] Configure firewall rules for your infrastructure
 -   [ ] Set appropriate resource limits (CPU/Memory) based on load
--   [ ] Build FAISS index before deploying: `python -c "from rag import build_index; build_index()"`
+-   [ ] Build indexes before deploying: `python -c "from rag import build_index; build_index()"`
 
 ### Docker Production Deployment
 
@@ -510,10 +566,10 @@ We welcome contributions from the community! Whether you're fixing bugs, adding 
 
 ### Code Standards
 
-- **Style**: Follow PEP 8, use Black for formatting
-- **Testing**: Maintain 70%+ test coverage
-- **Documentation**: Add docstrings for public functions
-- **Type hints**: Required for new code
+-   **Style**: Follow PEP 8, use Black for formatting
+-   **Testing**: Maintain 70%+ test coverage
+-   **Documentation**: Add docstrings for public functions
+-   **Type hints**: Required for new code
 
 ### Before Submitting
 
@@ -527,12 +583,13 @@ flake8                  # Lint code
 ### Detailed Guidelines
 
 For comprehensive information on:
-- Development setup and environment configuration
-- Detailed coding standards and best practices
-- Testing guidelines and coverage requirements
-- Pull request process and review criteria
-- Issue reporting templates
-- Community guidelines and communication
+
+-   Development setup and environment configuration
+-   Detailed coding standards and best practices
+-   Testing guidelines and coverage requirements
+-   Pull request process and review criteria
+-   Issue reporting templates
+-   Community guidelines and communication
 
 Please read our [**CONTRIBUTING.md**](CONTRIBUTING.md) guide.
 
@@ -648,8 +705,29 @@ docker logs chatbot | grep "duration_ms"
 -   Reduce `TOP_K_DEFAULT` to 5-7
 -   Increase `SIMILARITY_THRESHOLD` to 1.0
 -   Use GPU: `EMBEDDING_DEVICE=cuda`
+-   Disable re-ranking if not needed: `ENABLE_RERANKING=False`
+-   Disable hybrid search if not needed: `ENABLE_HYBRID_SEARCH=False`
+-   Reduce `INITIAL_RETRIEVAL_MULTIPLIER` to 2 if re-ranking is enabled
 
-#### 7. Docker Build Fails
+#### 7. BM25 Index Not Found (Hybrid Search Enabled)
+
+**Problem:**
+
+```
+FileNotFoundError: embeddings/bm25_index.pkl not found
+```
+
+**Solution:**
+
+```bash
+# Rebuild both FAISS and BM25 indexes
+python -c "from rag import build_index; build_index()"
+
+# Or disable hybrid search if not needed
+echo "ENABLE_HYBRID_SEARCH=False" >> .env
+```
+
+#### 8. Docker Build Fails
 
 **Problem:**
 
