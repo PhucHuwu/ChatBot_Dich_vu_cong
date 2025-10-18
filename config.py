@@ -9,7 +9,7 @@ class Settings:
     APP_ENV: str = os.getenv("APP_ENV", "development")
     DEBUG: bool = os.getenv("DEBUG", "False").lower() == "true"
 
-    API_TITLE: str = "Cổng Dịch vụ công Quốc gia - Chatbot API"
+    API_TITLE: str = "Chatbot Dịch vụ công - Chatbot API"
     API_VERSION: str = "1.0.0"
     API_PREFIX: str = "/api"
 

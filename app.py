@@ -31,7 +31,7 @@ cache = get_cache()
 
 app = FastAPI(
     title=settings.API_TITLE,
-    description="API hỗ trợ chatbot cho dịch vụ công quốc gia",
+    description="API hỗ trợ Chatbot Dịch vụ công",
     version=settings.API_VERSION,
     docs_url="/api/docs" if settings.EXPOSE_DOCS else None,
     redoc_url="/api/redoc" if settings.EXPOSE_DOCS else None,
@@ -152,7 +152,7 @@ async def root():
 async def health_check():
     return {
         "status": "healthy",
-        "message": "Cổng Dịch vụ công Quốc gia API đang hoạt động",
+        "message": "Chatbot Dịch vụ công API đang hoạt động",
         "environment": settings.APP_ENV,
         "timestamp": time.time()
     }
