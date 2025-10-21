@@ -60,39 +60,7 @@ This chatbot brings powerful AI capabilities to help citizens access public serv
 
 ## Architecture
 
-```mermaid
-flowchart TB
-    Client["Client<br/>(Browser)"]
-
-    subgraph FastAPI["FastAPI Backend"]
-        direction TB
-        Cache["Cache<br/>(LRU + TTL)"]
-        RAG["RAG Engine"]
-
-        subgraph HybridSearch["Hybrid Search"]
-            direction LR
-            BM25["BM25 Index<br/>(Keyword Search)"]
-            FAISS["FAISS Vector Store<br/>(Semantic Search)"]
-            RRF["RRF Fusion<br/>(Reciprocal Rank)"]
-
-            BM25 --> RRF
-            FAISS --> RRF
-        end
-
-        Reranker["Re-ranker<br/>(CrossEncoder)<br/>ms-marco-MiniLM"]
-        LLM["LLM<br/>(Groq API)<br/>gpt-oss-120b"]
-
-        Cache <--> RAG
-        RAG --> HybridSearch
-        HybridSearch --> Reranker
-        Reranker --> LLM
-    end
-
-    Client -->|"HTTP/SSE<br/>(Streaming)"| FastAPI
-    FastAPI -->|"Real-time Tokens<br/>+ Sources"| Client
-
-
-```
+[![](https://mermaid.ink/img/pako:eNp1VF1v2jAU_SuWn4ZKKITvqKoEDBhqkKok28OWPZjkNlgQmzmJKKP8913HsJKy5cGxc33OPSc-yZFGMgbq0Jet3EdrpnISjENB8JpsOYj8R0jN5GGl7h8_jZXcZ6BqIf0ZCrMvK1aJYrs1mbEsHz0vEHGekTGLNiDicjM5XzFXEOVcir-NymYsWoPupe-mlet9JXckCNxaBe-N5rgPRzIVCRdwpaSi5sthpXjsA1PRGgFmScy6QlgV5XrVynhpdxGub2QhYng14p7gsJfqwle7IZyNFr6v34S-k29ILhXxcTib8yFlIufRfwk8b6ZtejMyKzIUZmAeRHynZMS2xGNiU_tg_iKYWNajZviHptuSPqArDg8UMoPS3cEyc9N8omSWTYUOjKqVj9LMSlG-tJZccHdZMeG6S6TA0YDnSv4imAkDTHa5hWRWy26uPngoE0AeSpmjeeXcS-3X5_pevX5qLJ5t3Bory6jLVK7cm5zr8hvmJQie731_ej6uXAFLuUjwjb9dgm5Ql6wbmAdsa-U8BRJIjH5Wwu-ILwsVQabBpgut0wQFUydXBdRpCiplekmPmjWk-RpSjLaD05ipTUhDcULMjonvUqYXmJJFsqbOC9tmuCp2McvhM2f4AbxvQYOgJrLAno5t2yUHdY70lTqtYavR6nTb_UG_3x90us1BnR6oY7U6vUav1-_YzUGnb9s4nOr0d9m32RgO2q3m0LaHnXZ72B0gBGKOwV6a_0j5Ozn9AW68RVQ?type=png)](https://mermaid.live/edit#pako:eNp1VF1v2jAU_SuWn4ZKKITvqKoEDBhqkKok28OWPZjkNlgQmzmJKKP8913HsJKy5cGxc33OPSc-yZFGMgbq0Jet3EdrpnISjENB8JpsOYj8R0jN5GGl7h8_jZXcZ6BqIf0ZCrMvK1aJYrs1mbEsHz0vEHGekTGLNiDicjM5XzFXEOVcir-NymYsWoPupe-mlet9JXckCNxaBe-N5rgPRzIVCRdwpaSi5sthpXjsA1PRGgFmScy6QlgV5XrVynhpdxGub2QhYng14p7gsJfqwle7IZyNFr6v34S-k29ILhXxcTib8yFlIufRfwk8b6ZtejMyKzIUZmAeRHynZMS2xGNiU_tg_iKYWNajZviHptuSPqArDg8UMoPS3cEyc9N8omSWTYUOjKqVj9LMSlG-tJZccHdZMeG6S6TA0YDnSv4imAkDTHa5hWRWy26uPngoE0AeSpmjeeXcS-3X5_pevX5qLJ5t3Bory6jLVK7cm5zr8hvmJQie731_ej6uXAFLuUjwjb9dgm5Ql6wbmAdsa-U8BRJIjH5Wwu-ILwsVQabBpgut0wQFUydXBdRpCiplekmPmjWk-RpSjLaD05ipTUhDcULMjonvUqYXmJJFsqbOC9tmuCp2McvhM2f4AbxvQYOgJrLAno5t2yUHdY70lTqtYavR6nTb_UG_3x90us1BnR6oY7U6vUav1-_YzUGnb9s4nOr0d9m32RgO2q3m0LaHnXZ72B0gBGKOwV6a_0j5Ozn9AW68RVQ)
 
 ### Data Flow
 
