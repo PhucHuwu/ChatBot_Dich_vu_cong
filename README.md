@@ -60,44 +60,38 @@ This chatbot brings powerful AI capabilities to help citizens access public serv
 
 ## Architecture
 
-```
-┌─────────────┐
-│   Client    │
-│  (Browser)  │
-└──────┬──────┘
-       │ HTTP/SSE (Streaming)
-       ▼
-┌───────────────────────────────────────────┐
-│              FastAPI Backend              │
-│       ┌─────────┐       ┌─────────┐       │
-│       │  Cache  │◄─────►│   RAG   │       │
-│       └─────────┘       └────┬────┘       │
-│                              │            │
-│  ┌───────────────────────────┼─────────┐  │
-│  │   Hybrid Search           │         │  │
-│  │  ┌─────────────┐   ┌──────▼──────┐  │  │
-│  │  │ BM25 Index  │   │FAISS Vector │  │  │
-│  │  │  (Keyword)  │   │    Store    │  │  │
-│  │  └──────┬──────┘   └──────┬──────┘  │  │
-│  │         │                 │         │  │
-│  │         └────────┬────────┘         │  │
-│  │                  │                  │  │
-│  │         ┌────────▼────────┐         │  │
-│  │         │   RRF Fusion    │         │  │
-│  │         └────────┬────────┘         │  │
-│  └──────────────────┼──────────────────┘  │
-│                     │                     │
-│            ┌────────▼────────┐            │
-│            │    Re-ranker    │            │
-│            │ (CrossEncoder)  │            │
-│            └────────┬────────┘            │
-│                     │                     │
-│                     ▼                     │
-│               ┌───────────┐               │
-│               │    LLM    │               │
-│               │  (Groq)   │               │
-│               └───────────┘               │
-└───────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    Client["Client<br/>(Browser)"]
+
+    subgraph FastAPI["FastAPI Backend"]
+        direction TB
+        Cache["Cache<br/>(LRU + TTL)"]
+        RAG["RAG Engine"]
+
+        subgraph HybridSearch["Hybrid Search"]
+            direction LR
+            BM25["BM25 Index<br/>(Keyword Search)"]
+            FAISS["FAISS Vector Store<br/>(Semantic Search)"]
+            RRF["RRF Fusion<br/>(Reciprocal Rank)"]
+
+            BM25 --> RRF
+            FAISS --> RRF
+        end
+
+        Reranker["Re-ranker<br/>(CrossEncoder)<br/>ms-marco-MiniLM"]
+        LLM["LLM<br/>(Groq API)<br/>gpt-oss-120b"]
+
+        Cache <--> RAG
+        RAG --> HybridSearch
+        HybridSearch --> Reranker
+        Reranker --> LLM
+    end
+
+    Client -->|"HTTP/SSE<br/>(Streaming)"| FastAPI
+    FastAPI -->|"Real-time Tokens<br/>+ Sources"| Client
+
+
 ```
 
 ### Data Flow
