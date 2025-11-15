@@ -17,8 +17,6 @@ class LLMClient:
         self.client = Groq(api_key=self.api_key)
         logger.info(f"LLM Client initialized with model: {self.model}")
 
-
-
     def generate_completion_stream(
         self,
         messages: List[Dict[str, str]],
@@ -58,8 +56,6 @@ class LLMClient:
             logger.error(f"LLM streaming API call failed: {str(e)}")
             raise
 
-
-
     def generate_answer_stream(
         self,
         query: str,
@@ -71,11 +67,11 @@ class LLMClient:
     ):
 
         system_content = self._get_system_prompt()
-        
+
         if use_history and chat_history:
             recent_history = chat_history[-settings.CONTEXT_WINDOW_MESSAGES:]
             user_questions = [msg for msg in recent_history if msg.get("role") == "user"][-5:]
-            
+
             if user_questions:
                 history_context = self._build_history_context(user_questions)
                 system_content += "\n\n" + history_context
@@ -85,11 +81,11 @@ class LLMClient:
                 logger.info("Chat history skipped: standalone question detected")
             elif not chat_history:
                 logger.debug("Chat history skipped: no history available")
-        
+
         context_info = self._build_context_info(contexts)
         if context_info:
             system_content += "\n\n" + context_info
-        
+
         system_message = {
             "role": "system",
             "content": system_content
@@ -111,21 +107,21 @@ class LLMClient:
     def _build_history_context(self, user_questions: List[Dict]) -> str:
         if not user_questions:
             return ""
-        
+
         history_parts = ["LỊCH SỬ CÂU HỎI TRƯỚC ĐÓ CỦA NGƯỜI DÙNG:"]
         history_parts.append("(Đây là các câu hỏi người dùng đã hỏi trước đó trong cuộc hội thoại này)\n")
-        
+
         for i, msg in enumerate(user_questions, 1):
             history_parts.append(f"{i}. {msg.get('content', '')}")
-        
+
         history_parts.append(
             "\nLƯU Ý: Câu hỏi tiếp theo của người dùng có thể liên quan đến các câu hỏi trên. "
             "Hãy sử dụng ngữ cảnh từ lịch sử để trả lời chính xác và tự nhiên hơn."
             "Nếu câu hỏi tiếp theo không liên quan, hãy trả lời dựa trên thông tin được cung cấp."
         )
-        
+
         return "\n".join(history_parts)
-    
+
     def _build_context_info(self, contexts: List[Dict]) -> str:
         if not contexts or len(contexts) == 0:
             return ""

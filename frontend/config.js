@@ -1,16 +1,12 @@
 const CONFIG = {
     BASE_PATH: "",
 
-    API_BASE_URL:
-        window.location.hostname === "localhost" ||
-        window.location.hostname === "127.0.0.1"
-            ? `${window.location.protocol}//${window.location.host}`
-            : "https://gazeless-jeanett-bathetic.ngrok-free.dev",
+    API_BASE_URL: window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" ? `${window.location.protocol}//${window.location.host}` : "https://gazeless-jeanett-bathetic.ngrok-free.dev",
 
     ENDPOINTS: {
         CHAT_STREAM: "/api/chat/stream",
         STATUS: "/api/status",
-        HEALTH: "/health",
+        HEALTH: "/health"
     },
 
     MAX_HISTORY_LENGTH: 10,
@@ -28,7 +24,7 @@ const CONFIG = {
         LINK_ENHANCEMENT: true,
         PHONE_AUTO_DETECT: true,
         EMAIL_AUTO_DETECT: true,
-        CHAT_HISTORY: true,
+        CHAT_HISTORY: true
     },
 
     DEBUG_MODE: false,
@@ -36,8 +32,8 @@ const CONFIG = {
     SUPPORT: {
         HOTLINE: "18001096",
         EMAIL: "dichvucong@chinhphu.vn",
-        WEBSITE: "https://dichvucong.gov.vn",
-    },
+        WEBSITE: "https://dichvucong.gov.vn"
+    }
 };
 
 CONFIG.getApiUrl = function (endpoint) {
@@ -48,9 +44,7 @@ CONFIG.getApiUrl = function (endpoint) {
 
 CONFIG.getEnvironment = function () {
     const hostname = window.location.hostname;
-    return hostname === "localhost" || hostname === "127.0.0.1"
-        ? "development"
-        : "production";
+    return hostname === "localhost" || hostname === "127.0.0.1" ? "development" : "production";
 };
 
 CONFIG.isLocal = function () {

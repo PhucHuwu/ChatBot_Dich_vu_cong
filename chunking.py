@@ -4,6 +4,7 @@ def chunk_faq(faq_list):
         for item in faq_list
     ]
 
+
 def chunk_guide(guide_list):
     return [
         {
@@ -12,6 +13,7 @@ def chunk_guide(guide_list):
         }
         for item in guide_list
     ]
+
 
 def chunk_policy(policy_list):
     pass

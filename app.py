@@ -94,15 +94,15 @@ class BuildIndexRequest(BaseModel):
 
 def check_indexes_exist() -> bool:
     faiss_exists = os.path.exists(settings.INDEX_PATH) and os.path.exists(settings.METADATA_PATH)
-    
+
     if not faiss_exists:
         return False
-    
+
     if settings.ENABLE_HYBRID_SEARCH:
         bm25_exists = os.path.exists(settings.BM25_INDEX_PATH)
         if not bm25_exists:
             return False
-    
+
     return True
 
 
@@ -190,7 +190,7 @@ async def get_system_status(request: Request):
 async def chat_stream(request: ChatRequest, req: Request):
 
     trace_id = get_trace_id(req)
-    
+
     try:
         query = request.query.strip()
         conversation_id = request.conversation_id or "unknown"
@@ -216,12 +216,12 @@ async def chat_stream(request: ChatRequest, req: Request):
                 ):
                     chunk["trace_id"] = trace_id
                     chunk["success"] = True
-                    
+
                     yield f"data: {json.dumps(chunk, ensure_ascii=False)}\n\n"
-                
+
             except Exception as e:
                 logger.error(f"Error in streaming generation: {str(e)}",
-                           exc_info=True, extra={"trace_id": trace_id})
+                             exc_info=True, extra={"trace_id": trace_id})
                 error_chunk = {
                     "type": "error",
                     "error": str(e) if settings.DEBUG else "Lỗi xử lý yêu cầu",
@@ -247,9 +247,6 @@ async def chat_stream(request: ChatRequest, req: Request):
             status_code=500,
             detail=str(e) if settings.DEBUG else "Lỗi xử lý yêu cầu"
         )
-
-
-
 
 
 @app.post("/api/build")

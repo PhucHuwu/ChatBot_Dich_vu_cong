@@ -24,13 +24,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const scrollToBottomBtn = document.getElementById("scroll-to-bottom");
 
-    const confirmModalOverlay = document.getElementById(
-        "confirm-modal-overlay"
-    );
+    const confirmModalOverlay = document.getElementById("confirm-modal-overlay");
     const confirmModalTitle = document.getElementById("confirm-modal-title");
-    const confirmModalMessage = document.getElementById(
-        "confirm-modal-message"
-    );
+    const confirmModalMessage = document.getElementById("confirm-modal-message");
     const confirmBtnCancel = document.getElementById("confirm-btn-cancel");
     const confirmBtnConfirm = document.getElementById("confirm-btn-confirm");
 
@@ -55,9 +51,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function trapFocus(element) {
-        const focusableElements = element.querySelectorAll(
-            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-        );
+        const focusableElements = element.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
         const firstFocusable = focusableElements[0];
         const lastFocusable = focusableElements[focusableElements.length - 1];
 
@@ -120,10 +114,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const cleanup = () => {
                 confirmBtnConfirm.removeEventListener("click", handleConfirm);
                 confirmBtnCancel.removeEventListener("click", handleCancel);
-                confirmModalOverlay.removeEventListener(
-                    "click",
-                    handleOverlayClick
-                );
+                confirmModalOverlay.removeEventListener("click", handleOverlayClick);
             };
 
             confirmBtnConfirm.addEventListener("click", handleConfirm);
@@ -185,17 +176,14 @@ document.addEventListener("DOMContentLoaded", function () {
             gfm: true,
             headerIds: true,
             mangle: false,
-            sanitize: false,
+            sanitize: false
         });
 
         const renderer = new marked.Renderer();
 
         renderer.link = function (href, title, text) {
-            const isExternal =
-                href.startsWith("http") || href.startsWith("www");
-            const actualHref = href.startsWith("www")
-                ? "https://" + href
-                : href;
+            const isExternal = href.startsWith("http") || href.startsWith("www");
+            const actualHref = href.startsWith("www") ? "https://" + href : href;
             const titleAttr = title ? ` title="${title}"` : "";
 
             if (isExternal) {
@@ -245,7 +233,7 @@ document.addEventListener("DOMContentLoaded", function () {
             "<": "&lt;",
             ">": "&gt;",
             '"': "&quot;",
-            "'": "&#039;",
+            "'": "&#039;"
         };
         return text.replace(/[&<>"']/g, (m) => map[m]);
     }
@@ -254,7 +242,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const now = new Date();
         return now.toLocaleTimeString("vi-VN", {
             hour: "2-digit",
-            minute: "2-digit",
+            minute: "2-digit"
         });
     }
 
@@ -262,7 +250,7 @@ document.addEventListener("DOMContentLoaded", function () {
         chatHistory.push({
             sender: sender,
             message: message,
-            timestamp: new Date().toISOString(),
+            timestamp: new Date().toISOString()
         });
 
         if (chatHistory.length > MAX_HISTORY_LENGTH) {
@@ -276,21 +264,17 @@ document.addEventListener("DOMContentLoaded", function () {
         const targetId = conversationId || currentConversationId;
 
         if (!targetId || !conversations[targetId]) {
-            console.warn(
-                `[History] Conversation ${targetId} not found, returning empty history`
-            );
+            console.warn(`[History] Conversation ${targetId} not found, returning empty history`);
             return [];
         }
 
         const messages = conversations[targetId].messages || [];
 
-        console.log(
-            `[History] Getting ${messages.length} messages from conversation ${targetId}`
-        );
+        console.log(`[History] Getting ${messages.length} messages from conversation ${targetId}`);
 
         return messages.map((item) => ({
             role: item.sender === "user" ? "user" : "assistant",
-            content: item.message,
+            content: item.message
         }));
     }
 
@@ -325,50 +309,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 if (typeof DOMPurify !== "undefined") {
                     html = DOMPurify.sanitize(html, {
-                        ALLOWED_TAGS: [
-                            "h1",
-                            "h2",
-                            "h3",
-                            "h4",
-                            "h5",
-                            "h6",
-                            "p",
-                            "br",
-                            "hr",
-                            "strong",
-                            "em",
-                            "u",
-                            "s",
-                            "del",
-                            "mark",
-                            "a",
-                            "code",
-                            "pre",
-                            "ul",
-                            "ol",
-                            "li",
-                            "table",
-                            "thead",
-                            "tbody",
-                            "tr",
-                            "th",
-                            "td",
-                            "blockquote",
-                            "div",
-                            "span",
-                            "img",
-                            "i",
-                        ],
-                        ALLOWED_ATTR: [
-                            "href",
-                            "title",
-                            "target",
-                            "rel",
-                            "class",
-                            "src",
-                            "alt",
-                            "loading",
-                        ],
+                        ALLOWED_TAGS: ["h1", "h2", "h3", "h4", "h5", "h6", "p", "br", "hr", "strong", "em", "u", "s", "del", "mark", "a", "code", "pre", "ul", "ol", "li", "table", "thead", "tbody", "tr", "th", "td", "blockquote", "div", "span", "img", "i"],
+                        ALLOWED_ATTR: ["href", "title", "target", "rel", "class", "src", "alt", "loading"]
                     });
                 }
 
@@ -380,7 +322,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return fallbackMarkdown(text);
         } catch (error) {
             console.error("[ChatBot] Error parsing markdown:", error, {
-                textLength: text.length,
+                textLength: text.length
             });
             return fallbackMarkdown(text);
         }
@@ -399,28 +341,17 @@ document.addEventListener("DOMContentLoaded", function () {
                 const icon = document.createElement("i");
                 icon.className = "fas fa-phone";
                 link.insertBefore(icon, link.firstChild);
-                link.insertBefore(
-                    document.createTextNode(" "),
-                    icon.nextSibling
-                );
+                link.insertBefore(document.createTextNode(" "), icon.nextSibling);
             } else if (href && href.startsWith("mailto:")) {
                 link.classList.add("chat-link", "email-link");
                 const icon = document.createElement("i");
                 icon.className = "fas fa-envelope";
                 link.insertBefore(icon, link.firstChild);
-                link.insertBefore(
-                    document.createTextNode(" "),
-                    icon.nextSibling
-                );
+                link.insertBefore(document.createTextNode(" "), icon.nextSibling);
             }
         });
 
-        const walker = document.createTreeWalker(
-            temp,
-            NodeFilter.SHOW_TEXT,
-            null,
-            false
-        );
+        const walker = document.createTreeWalker(temp, NodeFilter.SHOW_TEXT, null, false);
 
         const textNodes = [];
         let node;
@@ -429,11 +360,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         textNodes.forEach((textNode) => {
-            if (
-                textNode.parentElement.tagName === "A" ||
-                textNode.parentElement.tagName === "CODE" ||
-                textNode.parentElement.tagName === "PRE"
-            ) {
+            if (textNode.parentElement.tagName === "A" || textNode.parentElement.tagName === "CODE" || textNode.parentElement.tagName === "PRE") {
                 return;
             }
 
@@ -442,16 +369,10 @@ document.addEventListener("DOMContentLoaded", function () {
             const phoneRegex = /(\+84|0)([0-9]{9,10})\b/g;
             if (phoneRegex.test(text)) {
                 const span = document.createElement("span");
-                span.innerHTML = text.replace(
-                    phoneRegex,
-                    '<a href="tel:$1$2" class="chat-link phone-link"><i class="fas fa-phone"></i> $1$2</a>'
-                );
+                span.innerHTML = text.replace(phoneRegex, '<a href="tel:$1$2" class="chat-link phone-link"><i class="fas fa-phone"></i> $1$2</a>');
                 textNode.parentNode.replaceChild(span, textNode);
 
-                if (
-                    span.childNodes.length === 1 &&
-                    span.firstChild.nodeType === 1
-                ) {
+                if (span.childNodes.length === 1 && span.firstChild.nodeType === 1) {
                     span.parentNode.replaceChild(span.firstChild, span);
                 } else {
                     while (span.firstChild) {
@@ -461,15 +382,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             }
 
-            const emailRegex =
-                /\b([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\b/g;
+            const emailRegex = /\b([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\b/g;
             text = textNode.textContent;
             if (emailRegex.test(text)) {
                 const span = document.createElement("span");
-                span.innerHTML = text.replace(
-                    emailRegex,
-                    '<a href="mailto:$1" class="chat-link email-link"><i class="fas fa-envelope"></i> $1</a>'
-                );
+                span.innerHTML = text.replace(emailRegex, '<a href="mailto:$1" class="chat-link email-link"><i class="fas fa-envelope"></i> $1</a>');
                 textNode.parentNode.replaceChild(span, textNode);
 
                 while (span.firstChild) {
@@ -497,10 +414,7 @@ document.addEventListener("DOMContentLoaded", function () {
             .replace(/```([\s\S]*?)```/g, "<pre><code>$1</code></pre>")
             .replace(/`(.*?)`/g, "<code>$1</code>")
 
-            .replace(
-                /\[([^\]]+)\]\(([^)]+)\)/g,
-                '<a href="$2" target="_blank" rel="noopener noreferrer" class="chat-link">$1 <i class="fas fa-external-link-alt"></i></a>'
-            )
+            .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="chat-link">$1 <i class="fas fa-external-link-alt"></i></a>')
 
             .replace(/\n\n/g, "</p><p>")
             .replace(/\n/g, "<br>")
@@ -521,15 +435,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     this.style.transform = "scale(1)";
                 }, 150);
 
-                if (
-                    this.classList.contains("phone-link") &&
-                    /Mobi|Android/i.test(navigator.userAgent)
-                ) {
+                if (this.classList.contains("phone-link") && /Mobi|Android/i.test(navigator.userAgent)) {
                     e.preventDefault();
-                    const confirmed = await showConfirmModal(
-                        "Bạn có muốn gọi điện thoại đến số này không?",
-                        "Xác nhận cuộc gọi"
-                    );
+                    const confirmed = await showConfirmModal("Bạn có muốn gọi điện thoại đến số này không?", "Xác nhận cuộc gọi");
                     if (confirmed) {
                         window.location.href = this.href;
                     }
@@ -587,20 +495,14 @@ document.addEventListener("DOMContentLoaded", function () {
         const messageData = {
             sender: sender,
             message: text,
-            timestamp: new Date().toISOString(),
+            timestamp: new Date().toISOString()
         };
 
         conversations[targetConvId].messages.push(messageData);
         conversations[targetConvId].updatedAt = new Date().toISOString();
 
-        if (
-            sender === "user" &&
-            conversations[targetConvId].messages.filter(
-                (m) => m.sender === "user"
-            ).length === 1
-        ) {
-            const title =
-                text.substring(0, 30) + (text.length > 30 ? "..." : "");
+        if (sender === "user" && conversations[targetConvId].messages.filter((m) => m.sender === "user").length === 1) {
+            const title = text.substring(0, 30) + (text.length > 30 ? "..." : "");
             conversations[targetConvId].title = title;
         }
 
@@ -662,11 +564,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    async function sendMessageStreaming(
-        message,
-        targetConversationId,
-        contextHistory
-    ) {
+    async function sendMessageStreaming(message, targetConversationId, contextHistory) {
         let fullAnswer = "";
         let botMessageDiv = null;
         let botBubbleDiv = null;
@@ -702,16 +600,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 body: JSON.stringify({
                     query: message,
                     chat_history: contextHistory,
-                    conversation_id: targetConversationId,
-                }),
+                    conversation_id: targetConversationId
+                })
             });
 
             if (!response.ok) {
-                console.error(
-                    "[ChatBot] API response not OK:",
-                    response.status,
-                    response.statusText
-                );
+                console.error("[ChatBot] API response not OK:", response.status, response.statusText);
                 throw new Error(`HTTP ${response.status}`);
             }
 
@@ -737,66 +631,45 @@ document.addEventListener("DOMContentLoaded", function () {
                                 if (data.type === "metadata") {
                                     shouldAutoScroll = isAtBottom();
                                     if (shouldAutoScroll) {
-                                        chatBox.scrollTop =
-                                            chatBox.scrollHeight;
+                                        chatBox.scrollTop = chatBox.scrollHeight;
                                     }
-                                } else if (
-                                    data.type === "content" &&
-                                    botBubbleDiv
-                                ) {
+                                } else if (data.type === "content" && botBubbleDiv) {
                                     fullAnswer += data.content;
                                     shouldAutoScroll = isAtBottom();
 
-                                    const cursor =
-                                        botBubbleDiv.querySelector(
-                                            ".streaming-cursor"
-                                        );
-                                    botBubbleDiv.innerHTML =
-                                        formatMarkdown(fullAnswer);
+                                    const cursor = botBubbleDiv.querySelector(".streaming-cursor");
+                                    botBubbleDiv.innerHTML = formatMarkdown(fullAnswer);
 
                                     if (cursor) {
                                         botBubbleDiv.appendChild(cursor);
                                     } else {
-                                        const newCursor =
-                                            document.createElement("span");
-                                        newCursor.className =
-                                            "streaming-cursor";
+                                        const newCursor = document.createElement("span");
+                                        newCursor.className = "streaming-cursor";
                                         newCursor.textContent = "▊";
                                         botBubbleDiv.appendChild(newCursor);
                                     }
 
                                     if (shouldAutoScroll) {
-                                        chatBox.scrollTop =
-                                            chatBox.scrollHeight;
+                                        chatBox.scrollTop = chatBox.scrollHeight;
                                     }
                                 } else if (data.type === "done") {
                                     console.log("[ChatBot] Stream completed:", {
                                         conversationId: targetConversationId,
-                                        totalLength: fullAnswer.length,
+                                        totalLength: fullAnswer.length
                                     });
-                                    const cursor =
-                                        botBubbleDiv?.querySelector(
-                                            ".streaming-cursor"
-                                        );
+                                    const cursor = botBubbleDiv?.querySelector(".streaming-cursor");
                                     if (cursor) cursor.remove();
 
-                                    if (
-                                        currentConversationId ===
-                                        targetConversationId
-                                    ) {
+                                    if (currentConversationId === targetConversationId) {
                                         const messageData = {
                                             sender: "bot",
                                             message: fullAnswer,
-                                            timestamp: new Date().toISOString(),
+                                            timestamp: new Date().toISOString()
                                         };
 
                                         chatHistory.push(messageData);
-                                        conversations[
-                                            targetConversationId
-                                        ].messages.push(messageData);
-                                        conversations[
-                                            targetConversationId
-                                        ].updatedAt = new Date().toISOString();
+                                        conversations[targetConversationId].messages.push(messageData);
+                                        conversations[targetConversationId].updatedAt = new Date().toISOString();
 
                                         saveConversations();
                                         renderConversationsList();
@@ -806,25 +679,14 @@ document.addEventListener("DOMContentLoaded", function () {
                                         handleLinkClicks(botMessageDiv);
                                     }
                                 } else if (data.type === "error") {
-                                    console.error(
-                                        "[ChatBot] Stream error received:",
-                                        data.error
-                                    );
+                                    console.error("[ChatBot] Stream error received:", data.error);
                                     if (botMessageDiv) {
                                         botMessageDiv.remove();
                                     }
-                                    appendMessageToConversation(
-                                        targetConversationId,
-                                        "bot",
-                                        `Lỗi: ${data.error}`
-                                    );
+                                    appendMessageToConversation(targetConversationId, "bot", `Lỗi: ${data.error}`);
                                 }
                             } catch (e) {
-                                console.error(
-                                    "[ChatBot] JSON parse error:",
-                                    e,
-                                    { line: line }
-                                );
+                                console.error("[ChatBot] JSON parse error:", e, { line: line });
                             }
                         }
                     }
@@ -835,7 +697,7 @@ document.addEventListener("DOMContentLoaded", function () {
         } catch (error) {
             console.error("[ChatBot] Streaming fatal error:", error, {
                 conversationId: targetConversationId,
-                messageLength: message.length,
+                messageLength: message.length
             });
             setLoadingState(false);
 
@@ -843,11 +705,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 botMessageDiv.remove();
             }
 
-            appendMessageToConversation(
-                targetConversationId,
-                "bot",
-                "Không thể kết nối tới máy chủ. Vui lòng kiểm tra kết nối internet và thử lại."
-            );
+            appendMessageToConversation(targetConversationId, "bot", "Không thể kết nối tới máy chủ. Vui lòng kiểm tra kết nối internet và thử lại.");
         }
     }
 
@@ -863,9 +721,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const contextHistory = getChatHistoryForAPI(targetConversationId);
 
-        console.log(
-            `[SendMessage] Sending to conversation ${targetConversationId} with ${contextHistory.length} history messages`
-        );
+        console.log(`[SendMessage] Sending to conversation ${targetConversationId} with ${contextHistory.length} history messages`);
 
         appendMessageToConversation(targetConversationId, "user", message);
         userInput.value = "";
@@ -894,20 +750,15 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    document
-        .querySelector(".header-actions")
-        .addEventListener("click", function (e) {
-            const btn = e.target.closest(".action-btn");
-            if (btn) {
-                const icon = btn.querySelector("i");
-                if (icon.classList.contains("fa-headset")) {
-                    appendMessage(
-                        "bot",
-                        `Bạn có thể liên hệ hỗ trợ qua số hotline: ${CONFIG.SUPPORT.HOTLINE} hoặc email: ${CONFIG.SUPPORT.EMAIL}`
-                    );
-                }
+    document.querySelector(".header-actions").addEventListener("click", function (e) {
+        const btn = e.target.closest(".action-btn");
+        if (btn) {
+            const icon = btn.querySelector("i");
+            if (icon.classList.contains("fa-headset")) {
+                appendMessage("bot", `Bạn có thể liên hệ hỗ trợ qua số hotline: ${CONFIG.SUPPORT.HOTLINE} hoặc email: ${CONFIG.SUPPORT.EMAIL}`);
             }
-        });
+        }
+    });
 
     if (sidebarThemeToggle) {
         sidebarThemeToggle.addEventListener("click", toggleTheme);
@@ -915,10 +766,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (sidebarSupportBtn) {
         sidebarSupportBtn.addEventListener("click", function () {
-            appendMessage(
-                "bot",
-                `Bạn có thể liên hệ hỗ trợ qua số hotline: ${CONFIG.SUPPORT.HOTLINE} hoặc email: ${CONFIG.SUPPORT.EMAIL}`
-            );
+            appendMessage("bot", `Bạn có thể liên hệ hỗ trợ qua số hotline: ${CONFIG.SUPPORT.HOTLINE} hoặc email: ${CONFIG.SUPPORT.EMAIL}`);
             closeSidebar();
         });
     }
@@ -929,9 +777,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (saved) {
                 conversations = JSON.parse(saved);
             }
-            const currentId = localStorage.getItem(
-                "chatbot_current_conversation"
-            );
+            const currentId = localStorage.getItem("chatbot_current_conversation");
             if (currentId && conversations[currentId]) {
                 currentConversationId = currentId;
                 loadConversation(currentId, false);
@@ -947,15 +793,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function saveConversations() {
         try {
-            localStorage.setItem(
-                "chatbot_conversations",
-                JSON.stringify(conversations)
-            );
+            localStorage.setItem("chatbot_conversations", JSON.stringify(conversations));
             if (currentConversationId) {
-                localStorage.setItem(
-                    "chatbot_current_conversation",
-                    currentConversationId
-                );
+                localStorage.setItem("chatbot_current_conversation", currentConversationId);
             }
         } catch (error) {
             console.error("[ChatBot] Error saving conversations:", error);
@@ -972,7 +812,7 @@ document.addEventListener("DOMContentLoaded", function () {
             title: "Đoạn chat mới",
             messages: [],
             createdAt: now.toISOString(),
-            updatedAt: now.toISOString(),
+            updatedAt: now.toISOString()
         };
 
         currentConversationId = id;
@@ -1017,18 +857,13 @@ document.addEventListener("DOMContentLoaded", function () {
             conversations[currentConversationId].messages = chatHistory.slice();
 
             if (updateTime) {
-                conversations[currentConversationId].updatedAt =
-                    new Date().toISOString();
+                conversations[currentConversationId].updatedAt = new Date().toISOString();
             }
 
             if (chatHistory.length > 0) {
-                const firstUserMessage = chatHistory.find(
-                    (msg) => msg.sender === "user"
-                );
+                const firstUserMessage = chatHistory.find((msg) => msg.sender === "user");
                 if (firstUserMessage) {
-                    const title =
-                        firstUserMessage.message.substring(0, 30) +
-                        (firstUserMessage.message.length > 30 ? "..." : "");
+                    const title = firstUserMessage.message.substring(0, 30) + (firstUserMessage.message.length > 30 ? "..." : "");
                     conversations[currentConversationId].title = title;
                 }
             }
@@ -1088,13 +923,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 const bubbleClass = isUser ? "user-bubble" : "bot-bubble";
                 const avatarIcon = isUser ? "fas fa-user" : "fas fa-landmark";
 
-                const formattedText = isUser
-                    ? msg.message
-                    : formatMarkdown(msg.message);
+                const formattedText = isUser ? msg.message : formatMarkdown(msg.message);
                 const msgTime = msg.timestamp
                     ? new Date(msg.timestamp).toLocaleTimeString("vi-VN", {
                           hour: "2-digit",
-                          minute: "2-digit",
+                          minute: "2-digit"
                       })
                     : getCurrentTime();
 
@@ -1134,10 +967,7 @@ document.addEventListener("DOMContentLoaded", function () {
             event.stopPropagation();
         }
 
-        const confirmed = await showConfirmModal(
-            "Bạn có chắc muốn xóa đoạn chat này?",
-            "Xác nhận xóa"
-        );
+        const confirmed = await showConfirmModal("Bạn có chắc muốn xóa đoạn chat này?", "Xác nhận xóa");
 
         if (!confirmed) {
             return;
@@ -1147,10 +977,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (currentConversationId === id) {
             const conversationIds = Object.keys(conversations).sort((a, b) => {
-                return (
-                    new Date(conversations[b].updatedAt) -
-                    new Date(conversations[a].updatedAt)
-                );
+                return new Date(conversations[b].updatedAt) - new Date(conversations[a].updatedAt);
             });
 
             if (conversationIds.length > 0) {
@@ -1166,10 +993,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function renderConversationsList() {
         const conversationIds = Object.keys(conversations).sort((a, b) => {
-            return (
-                new Date(conversations[b].updatedAt) -
-                new Date(conversations[a].updatedAt)
-            );
+            return new Date(conversations[b].updatedAt) - new Date(conversations[a].updatedAt);
         });
 
         if (conversationIds.length === 0) {
@@ -1188,13 +1012,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const conv = conversations[id];
             const isActive = id === currentConversationId;
 
-            const lastMessage =
-                conv.messages.length > 0
-                    ? conv.messages[conv.messages.length - 1].message.substring(
-                          0,
-                          40
-                      ) + "..."
-                    : "Chưa có tin nhắn";
+            const lastMessage = conv.messages.length > 0 ? conv.messages[conv.messages.length - 1].message.substring(0, 40) + "..." : "Chưa có tin nhắn";
 
             const timeAgo = getTimeAgo(new Date(conv.updatedAt));
 
@@ -1214,9 +1032,7 @@ document.addEventListener("DOMContentLoaded", function () {
             item.addEventListener("click", () => loadConversation(id));
 
             const deleteBtn = item.querySelector(".conversation-delete");
-            deleteBtn.addEventListener("click", (e) =>
-                deleteConversation(id, e)
-            );
+            deleteBtn.addEventListener("click", (e) => deleteConversation(id, e));
 
             conversationsList.appendChild(item);
         });
@@ -1275,7 +1091,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function smoothScrollToBottom() {
         chatBox.scrollTo({
             top: chatBox.scrollHeight,
-            behavior: "smooth",
+            behavior: "smooth"
         });
         setTimeout(() => {
             updateScrollButton();
@@ -1286,10 +1102,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function isAtBottom() {
         const threshold = 100;
-        return (
-            chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight <
-            threshold
-        );
+        return chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight < threshold;
     }
 
     function updateScrollButton() {
@@ -1303,7 +1116,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function scrollToBottom() {
         chatBox.scrollTo({
             top: chatBox.scrollHeight,
-            behavior: "smooth",
+            behavior: "smooth"
         });
     }
 
@@ -1330,14 +1143,9 @@ document.addEventListener("DOMContentLoaded", function () {
         this.style.height = Math.min(this.scrollHeight, 120) + "px";
     });
 
-    document
-        .querySelector(".attachment-btn")
-        .addEventListener("click", function () {
-            appendMessage(
-                "bot",
-                "Tính năng đính kèm file sẽ được hỗ trợ trong phiên bản tiếp theo."
-            );
-        });
+    document.querySelector(".attachment-btn").addEventListener("click", function () {
+        appendMessage("bot", "Tính năng đính kèm file sẽ được hỗ trợ trong phiên bản tiếp theo.");
+    });
 
     function openHelpModal() {
         helpModalOverlay.classList.add("active");
@@ -1354,10 +1162,10 @@ document.addEventListener("DOMContentLoaded", function () {
         if (document.activeElement && helpModalOverlay.contains(document.activeElement)) {
             document.activeElement.blur();
         }
-        
+
         helpModalOverlay.classList.remove("active");
         helpModalOverlay.setAttribute("aria-hidden", "true");
-        
+
         if (helpToggle) {
             helpToggle.focus();
         }
@@ -1369,7 +1177,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     if (sidebarHelpBtn) {
-        sidebarHelpBtn.addEventListener("click", function() {
+        sidebarHelpBtn.addEventListener("click", function () {
             openHelpModal();
             closeSidebar();
         });
@@ -1440,15 +1248,10 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     quickActions.addEventListener("keydown", function (e) {
-        const quickActionItems = Array.from(
-            quickActions.querySelectorAll(".quick-action-item")
-        );
+        const quickActionItems = Array.from(quickActions.querySelectorAll(".quick-action-item"));
         const currentIndex = quickActionItems.indexOf(document.activeElement);
 
-        if (
-            e.key === "ArrowRight" &&
-            currentIndex < quickActionItems.length - 1
-        ) {
+        if (e.key === "ArrowRight" && currentIndex < quickActionItems.length - 1) {
             e.preventDefault();
             quickActionItems[currentIndex + 1].focus();
         } else if (e.key === "ArrowLeft" && currentIndex > 0) {
